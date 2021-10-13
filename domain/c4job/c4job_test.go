@@ -8,6 +8,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestConstJobType(t *testing.T) {
+	assert.EqualValues(t, JobTypeCreate, "Create")
+	assert.EqualValues(t, JobTypeCreateAndRename, "CreateAndRename")
+}
+
+func TestConstJobStatus(t *testing.T) {
+	assert.EqualValues(t, JobStatusCreated, "Created")
+	assert.EqualValues(t, JobStatusQueued, "Queued")
+	assert.EqualValues(t, JobStatusRunning, "Running")
+	assert.EqualValues(t, JobStatusFinished, "Finished")
+	assert.EqualValues(t, JobStatusFailed, "Failed")
+}
+
 func TestCreateC4JobAsJson(t *testing.T) {
 	job1 := C4job{
 		Id:         1,
@@ -18,8 +31,8 @@ func TestCreateC4JobAsJson(t *testing.T) {
 		ModifiedBy: "user2",
 		SrcUrl:     "https://server/path1/file1.ext",
 		DstUrl:     "https://server/path2/file2.ext",
-		//Type:       JobType.Create,
-		//Status:     JobStatus.Created,
+		Type:       JobTypeCreate,
+		Status:     JobStatusCreated,
 	}
 	bytes, err := json.Marshal(job1)
 	assert.NotNil(t, bytes)

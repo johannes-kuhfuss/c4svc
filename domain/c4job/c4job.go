@@ -1,47 +1,21 @@
 package c4job
 
-type JobType int64
+type JobType string
 
 const (
-	Create          JobType = 1
-	CreateAndRename JobType = 2
+	JobTypeCreate          = "Create"
+	JobTypeCreateAndRename = "CreateAndRename"
 )
 
-func (jt JobType) String() string {
-	switch jt {
-	case Create:
-		return "Create"
-	case CreateAndRename:
-		return "CreateAndRename"
-	}
-	return "unknown"
-}
-
-type JobStatus int64
+type JobStatus string
 
 const (
-	Created  JobStatus = 1
-	Queued   JobStatus = 2
-	Running  JobStatus = 3
-	Finished JobStatus = 4
-	Failed   JobStatus = 5
+	JobStatusCreated  = "Created"
+	JobStatusQueued   = "Queued"
+	JobStatusRunning  = "Running"
+	JobStatusFinished = "Finished"
+	JobStatusFailed   = "Failed"
 )
-
-func (js JobStatus) String() string {
-	switch js {
-	case Created:
-		return "Created"
-	case Queued:
-		return "Queued"
-	case Running:
-		return "Running"
-	case Finished:
-		return "Finished"
-	case Failed:
-		return "Failed"
-	}
-	return "unknown"
-}
 
 type C4job struct {
 	Id         int64     `json:"id"`
