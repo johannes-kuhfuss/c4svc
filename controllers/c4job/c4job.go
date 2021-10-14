@@ -4,28 +4,25 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/johannes-kuhfuss/services_utils"
+	"github.com/johannes-kuhfuss/c4/domain/c4job"
+	services "github.com/johannes-kuhfuss/c4/services/C4JobService"
+	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
 func CreateC4Job(c *gin.Context) {
-	//restErr := rest_errors.NewBadRequestError("asdf")
-	/*
-		var c4job c4job.C4job
-		if err := c.ShouldBindJSON(&c4job); err != nil {
-			apiErr := restError.NewBadRequestError("invalid json body")
-			c.JSON(apiErr.Status(), apiErr)
-			return
-		}
+	var c4job c4job.C4job
+	if err := c.ShouldBindJSON(&c4job); err != nil {
+		apiErr := rest_errors.NewBadRequestError("invalid json body")
+		c.JSON(apiErr.StatusCode(), apiErr)
+		return
+	}
 
-		clientId := c.GetHeader("X-Client-Id")
-
-		result, err := services.RepositoryService.CreateRepo(clientId, request)
-		if err != nil {
-			c.JSON(err.Status(), err)
-			return
-		}
-		c.JSON(http.StatusCreated, result)
-	*/
+	result, err := services.C4JobService.CreateC4Job(c4job)
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusCreated, result)
 }
 
 func GetC4Job(c *gin.Context) {
