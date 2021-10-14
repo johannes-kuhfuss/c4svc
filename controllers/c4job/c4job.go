@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	//_ "github.com/johannes-kuhfuss/services_utils/rest_errors"
+	_ "github.com/johannes-kuhfuss/services_utils"
 )
 
 func CreateC4Job(c *gin.Context) {
