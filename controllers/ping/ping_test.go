@@ -11,5 +11,5 @@ func TestConstants(t *testing.T) {
 }
 
 func TestPing(t *testing.T) {
-
+	// To do
 }
