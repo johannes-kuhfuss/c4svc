@@ -36,13 +36,13 @@ func (job *jobDao) GetJob(jobId string) (*Job, rest_errors.RestErr) {
 	if job := jobs[jobId]; job != nil {
 		return job, nil
 	}
-	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id \"%v\" does not exist", jobId))
+	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
 	return nil, err
 }
 
 func (job *jobDao) SaveJob(newJob Job) (*Job, rest_errors.RestErr) {
 	if _, found := jobs[newJob.Id]; found {
-		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id \"%v\" already exists", newJob.Id))
+		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
 	}
 	jobs[newJob.Id] = &newJob

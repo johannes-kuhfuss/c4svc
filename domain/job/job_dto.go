@@ -34,6 +34,7 @@ type Job struct {
 	DstUrl     string    `json:"dst_url"`
 	Type       JobType   `json:"type"`
 	Status     JobStatus `json:"status"`
+	FileC4Id   string    `json:"file_c4_id"`
 }
 
 func (j *Job) Validate() rest_errors.RestErr {
