@@ -18,7 +18,7 @@ type jobService struct{}
 
 type jobServiceInterface interface {
 	CreateJob(domain.Job) (*domain.Job, rest_errors.RestErr)
-	GetJob(int64) (*domain.Job, rest_errors.RestErr)
+	GetJob(string) (*domain.Job, rest_errors.RestErr)
 }
 
 func (j *jobService) CreateJob(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
@@ -33,7 +33,6 @@ func (j *jobService) CreateJob(inputJob domain.Job) (*domain.Job, rest_errors.Re
 		request.Name = fmt.Sprintf("Job @ %s", date_utils.GetNowUtcString())
 	}
 	request.CreatedAt = date_utils.GetNowUtcString()
-	request.CreatedBy = "user-im"
 	request.SrcUrl = inputJob.SrcUrl
 	if inputJob.Type == domain.JobTypeCreateAndRename {
 		request.DstUrl = inputJob.DstUrl
@@ -49,6 +48,10 @@ func (j *jobService) CreateJob(inputJob domain.Job) (*domain.Job, rest_errors.Re
 	return savedJob, nil
 }
 
-func (j *jobService) GetJob(id int64) (*domain.Job, rest_errors.RestErr) {
-	return nil, nil
+func (j *jobService) GetJob(jobId string) (*domain.Job, rest_errors.RestErr) {
+	job, err := domain.JobDao.GetJob(jobId)
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
 }

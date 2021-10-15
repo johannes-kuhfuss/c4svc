@@ -8,5 +8,5 @@ import (
 func mapUrls() {
 	router.GET("/ping", ping.Pong)
 	router.POST("/job", job.CreateJob)
-	router.GET("/job/:jobid", job.GetJob)
+	router.GET("/job/:job_id", job.GetJob)
 }
