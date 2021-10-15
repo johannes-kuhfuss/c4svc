@@ -7,6 +7,7 @@ import (
 	domain "github.com/johannes-kuhfuss/c4/domain/job"
 	"github.com/johannes-kuhfuss/c4/utils/date_utils"
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
+	"github.com/segmentio/ksuid"
 )
 
 var (
@@ -25,7 +26,7 @@ func (j *jobService) CreateJob(inputJob domain.Job) (*domain.Job, rest_errors.Re
 		return nil, err
 	}
 	request := domain.Job{}
-	request.Id = 2
+	request.Id = ksuid.New().String()
 	if strings.TrimSpace(inputJob.Name) != "" {
 		request.Name = inputJob.Name
 	} else {

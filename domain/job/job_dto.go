@@ -24,7 +24,7 @@ const (
 )
 
 type Job struct {
-	Id         int64     `json:"id"`
+	Id         string    `json:"id"`
 	Name       string    `json:"name"`
 	CreatedAt  string    `json:"created_at"`
 	CreatedBy  string    `json:"created_by"`

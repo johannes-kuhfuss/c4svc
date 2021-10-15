@@ -22,8 +22,8 @@ func TestConstJobStatus(t *testing.T) {
 }
 
 func TestCreateC4JobAsJson(t *testing.T) {
-	job1 := C4job{
-		Id:         1,
+	job1 := Job{
+		Id:         "1zXg7ubtb02J3t0muj6jXqzzM72",
 		Name:       "new C4 Job",
 		CreatedAt:  date_utils.GetNowUtcString(),
 		CreatedBy:  "user1",
@@ -38,7 +38,7 @@ func TestCreateC4JobAsJson(t *testing.T) {
 	assert.NotNil(t, bytes)
 	assert.Nil(t, err)
 
-	var job2 C4job
+	var job2 Job
 	err = json.Unmarshal(bytes, &job2)
 	assert.Nil(t, err)
 	assert.NotNil(t, job2)
