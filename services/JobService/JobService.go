@@ -4,32 +4,32 @@ import (
 	"fmt"
 	"strings"
 
-	domain "github.com/johannes-kuhfuss/c4/domain/c4job"
+	domain "github.com/johannes-kuhfuss/c4/domain/job"
 	"github.com/johannes-kuhfuss/c4/utils/date_utils"
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
 var (
-	C4JobService c4JobServiceInterface = &c4JobService{}
+	JobService jobServiceInterface = &jobService{}
 )
 
-type c4JobService struct{}
+type jobService struct{}
 
-type c4JobServiceInterface interface {
-	CreateC4Job(domain.C4job) (*domain.C4job, rest_errors.RestErr)
-	GetC4Job(int64) (*domain.C4job, rest_errors.RestErr)
+type jobServiceInterface interface {
+	CreateJob(domain.Job) (*domain.Job, rest_errors.RestErr)
+	GetJob(int64) (*domain.Job, rest_errors.RestErr)
 }
 
-func (c4 *c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_errors.RestErr) {
+func (j *jobService) CreateJob(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
 	if err := inputJob.Validate(); err != nil {
 		return nil, err
 	}
-	request := domain.C4job{}
+	request := domain.Job{}
 	request.Id = 2
 	if strings.TrimSpace(inputJob.Name) != "" {
 		request.Name = inputJob.Name
 	} else {
-		request.Name = fmt.Sprintf("C4 Job @ %s", date_utils.GetNowUtcString())
+		request.Name = fmt.Sprintf("Job @ %s", date_utils.GetNowUtcString())
 	}
 	request.CreatedAt = date_utils.GetNowUtcString()
 	request.CreatedBy = "user-im"
@@ -41,13 +41,13 @@ func (c4 *c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_
 	}
 	request.Type = inputJob.Type
 	request.Status = domain.JobStatusCreated
-	savedJob, err := domain.C4jobDao.SaveJob(request)
+	savedJob, err := domain.JobDao.SaveJob(request)
 	if err != nil {
 		return nil, err
 	}
 	return savedJob, nil
 }
 
-func (c4 *c4JobService) GetC4Job(id int64) (*domain.C4job, rest_errors.RestErr) {
+func (j *jobService) GetJob(id int64) (*domain.Job, rest_errors.RestErr) {
 	return nil, nil
 }
