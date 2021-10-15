@@ -1,4 +1,4 @@
-package c4job
+package job
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
-func CreateC4Job(c *gin.Context) {
+func CreateJob(c *gin.Context) {
 	var newJob domain.C4job
 	if err := c.ShouldBindJSON(&newJob); err != nil {
 		apiErr := rest_errors.NewBadRequestError("invalid json body")
@@ -26,6 +26,6 @@ func CreateC4Job(c *gin.Context) {
 	c.JSON(http.StatusCreated, result)
 }
 
-func GetC4Job(c *gin.Context) {
+func GetJob(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, "not implemented")
 }

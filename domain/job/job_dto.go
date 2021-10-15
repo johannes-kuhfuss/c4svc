@@ -23,7 +23,7 @@ const (
 	JobStatusFailed   = "Failed"
 )
 
-type C4job struct {
+type Job struct {
 	Id         int64     `json:"id"`
 	Name       string    `json:"name"`
 	CreatedAt  string    `json:"created_at"`
@@ -36,14 +36,14 @@ type C4job struct {
 	Status     JobStatus `json:"status"`
 }
 
-func (c4 *C4job) Validate() rest_errors.RestErr {
-	if (c4.Type != JobTypeCreate) && (c4.Type != JobTypeCreateAndRename) {
+func (j *Job) Validate() rest_errors.RestErr {
+	if (j.Type != JobTypeCreate) && (j.Type != JobTypeCreateAndRename) {
 		return rest_errors.NewBadRequestError("invalid job type")
 	}
-	if strings.TrimSpace(c4.SrcUrl) == "" {
+	if strings.TrimSpace(j.SrcUrl) == "" {
 		return rest_errors.NewBadRequestError("invalid source Url")
 	}
-	if (c4.Type == JobTypeCreateAndRename) && (strings.TrimSpace(c4.DstUrl) == "") {
+	if (j.Type == JobTypeCreateAndRename) && (strings.TrimSpace(j.DstUrl) == "") {
 		return rest_errors.NewBadRequestError("invalid destination Url")
 	}
 	return nil

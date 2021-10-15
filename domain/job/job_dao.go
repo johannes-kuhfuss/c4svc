@@ -18,12 +18,8 @@ var (
 		},
 	}
 
-	C4jobDao c4jobDaoInterface
+	C4jobDao c4jobDaoInterface = &c4jobDao{}
 )
-
-func init() {
-	C4jobDao = &c4jobDao{}
-}
 
 type c4jobDaoInterface interface {
 	GetJob(int64) (*C4job, rest_errors.RestErr)
