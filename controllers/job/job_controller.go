@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	domain "github.com/johannes-kuhfuss/c4/domain/c4job"
-	services "github.com/johannes-kuhfuss/c4/services/C4JobService"
+	domain "github.com/johannes-kuhfuss/c4/domain/job"
+	services "github.com/johannes-kuhfuss/c4/services/JobService"
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
 func CreateJob(c *gin.Context) {
-	var newJob domain.C4job
+	var newJob domain.Job
 	if err := c.ShouldBindJSON(&newJob); err != nil {
 		apiErr := rest_errors.NewBadRequestError("invalid json body")
 		c.JSON(apiErr.StatusCode(), apiErr)
@@ -18,7 +18,7 @@ func CreateJob(c *gin.Context) {
 	}
 	//fmt.Printf("Job: %#v", newJob)
 
-	result, err := services.C4JobService.CreateC4Job(newJob)
+	result, err := services.JobService.CreateJob(newJob)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
