@@ -1,4 +1,4 @@
-package c4job
+package domain
 
 import (
 	"encoding/json"

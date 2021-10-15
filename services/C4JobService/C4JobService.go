@@ -1,15 +1,19 @@
 package services
 
 import (
-	"github.com/johannes-kuhfuss/c4/domain/c4job"
+	"fmt"
+	"strings"
+
+	domain "github.com/johannes-kuhfuss/c4/domain/c4job"
+	"github.com/johannes-kuhfuss/c4/utils/date_utils"
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
 type c4JobService struct{}
 
 type c4JobServiceInterface interface {
-	CreateC4Job(c4job.C4job) (*c4job.C4job, rest_errors.RestErr)
-	GetC4Job(int64) (*c4job.C4job, rest_errors.RestErr)
+	CreateC4Job(domain.C4job) (*domain.C4job, rest_errors.RestErr)
+	GetC4Job(int64) (*domain.C4job, rest_errors.RestErr)
 }
 
 var (
@@ -20,10 +24,31 @@ func Init() {
 	C4JobService = &c4JobService{}
 }
 
-func (c4 c4JobService) CreateC4Job(job c4job.C4job) (*c4job.C4job, rest_errors.RestErr) {
+func (c4 c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_errors.RestErr) {
+	if err := inputJob.Validate(); err != nil {
+		return nil, err
+	}
+	request := domain.C4job{}
+	request.Id = 2
+	if strings.TrimSpace(inputJob.Name) != "" {
+		request.Name = inputJob.Name
+	} else {
+		request.Name = fmt.Sprintf("C4 Job @ %s", date_utils.GetNowUtcString())
+	}
+	request.CreatedAt = date_utils.GetNowUtcString()
+	request.CreatedBy = "user-im"
+	request.SrcUrl = inputJob.SrcUrl
+	if inputJob.Type == domain.JobTypeCreateAndRename {
+		request.DstUrl = inputJob.DstUrl
+	} else {
+		request.DstUrl = ""
+	}
+	request.Type = inputJob.Type
+	request.Status = domain.JobStatusCreated
+	_ = request
 	return nil, nil
 }
 
-func (c4 c4JobService) GetC4Job(id int64) (*c4job.C4job, rest_errors.RestErr) {
+func (c4 c4JobService) GetC4Job(id int64) (*domain.C4job, rest_errors.RestErr) {
 	return nil, nil
 }

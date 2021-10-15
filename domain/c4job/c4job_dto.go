@@ -1,4 +1,10 @@
-package c4job
+package domain
+
+import (
+	"strings"
+
+	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
+)
 
 type JobType string
 
@@ -28,4 +34,17 @@ type C4job struct {
 	DstUrl     string    `json:"dst_url"`
 	Type       JobType   `json:"job_type"`
 	Status     JobStatus `json:"status"`
+}
+
+func (c4 *C4job) Validate() rest_errors.RestErr {
+	if (c4.Type != JobTypeCreate) && (c4.Type != JobTypeCreateAndRename) {
+		return rest_errors.NewBadRequestError("invalid job type")
+	}
+	if strings.TrimSpace(c4.SrcUrl) == "" {
+		return rest_errors.NewBadRequestError("invalid source Url")
+	}
+	if (c4.Type == JobTypeCreateAndRename) && (strings.TrimSpace(c4.DstUrl) == "") {
+		return rest_errors.NewBadRequestError("invalid destination Url")
+	}
+	return nil
 }
