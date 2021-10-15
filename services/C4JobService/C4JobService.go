@@ -9,19 +9,15 @@ import (
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
+var (
+	C4JobService c4JobServiceInterface = &c4JobService{}
+)
+
 type c4JobService struct{}
 
 type c4JobServiceInterface interface {
 	CreateC4Job(domain.C4job) (*domain.C4job, rest_errors.RestErr)
 	GetC4Job(int64) (*domain.C4job, rest_errors.RestErr)
-}
-
-var (
-	C4JobService c4JobServiceInterface
-)
-
-func Init() {
-	C4JobService = &c4JobService{}
 }
 
 func (c4 *c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_errors.RestErr) {
