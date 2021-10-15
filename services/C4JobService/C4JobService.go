@@ -24,7 +24,7 @@ func Init() {
 	C4JobService = &c4JobService{}
 }
 
-func (c4 c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_errors.RestErr) {
+func (c4 *c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_errors.RestErr) {
 	if err := inputJob.Validate(); err != nil {
 		return nil, err
 	}
@@ -45,10 +45,13 @@ func (c4 c4JobService) CreateC4Job(inputJob domain.C4job) (*domain.C4job, rest_e
 	}
 	request.Type = inputJob.Type
 	request.Status = domain.JobStatusCreated
-	_ = request
-	return nil, nil
+	savedJob, err := domain.C4jobDao.SaveJob(request)
+	if err != nil {
+		return nil, err
+	}
+	return savedJob, nil
 }
 
-func (c4 c4JobService) GetC4Job(id int64) (*domain.C4job, rest_errors.RestErr) {
+func (c4 *c4JobService) GetC4Job(id int64) (*domain.C4job, rest_errors.RestErr) {
 	return nil, nil
 }

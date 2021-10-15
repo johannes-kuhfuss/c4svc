@@ -32,7 +32,7 @@ type C4job struct {
 	ModifiedBy string    `json:"modified_by"`
 	SrcUrl     string    `json:"src_url"`
 	DstUrl     string    `json:"dst_url"`
-	Type       JobType   `json:"job_type"`
+	Type       JobType   `json:"type"`
 	Status     JobStatus `json:"status"`
 }
 

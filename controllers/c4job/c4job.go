@@ -10,14 +10,15 @@ import (
 )
 
 func CreateC4Job(c *gin.Context) {
-	var c4job domain.C4job
-	if err := c.ShouldBindJSON(&c4job); err != nil {
+	var newJob domain.C4job
+	if err := c.ShouldBindJSON(&newJob); err != nil {
 		apiErr := rest_errors.NewBadRequestError("invalid json body")
 		c.JSON(apiErr.StatusCode(), apiErr)
 		return
 	}
+	//fmt.Printf("Job: %#v", newJob)
 
-	result, err := services.C4JobService.CreateC4Job(c4job)
+	result, err := services.C4JobService.CreateC4Job(newJob)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
