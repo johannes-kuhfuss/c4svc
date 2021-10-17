@@ -28,7 +28,7 @@ var (
 
 type jobDaoInterface interface {
 	Get(string) (*Job, rest_errors.RestErr)
-	Save(job Job) (*Job, rest_errors.RestErr)
+	Save(Job, bool) (*Job, rest_errors.RestErr)
 	Delete(string) rest_errors.RestErr
 }
 
@@ -42,8 +42,9 @@ func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	return nil, err
 }
 
-func (job *jobDao) Save(newJob Job) (*Job, rest_errors.RestErr) {
-	if _, found := jobs[newJob.Id]; found {
+func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) {
+	_, found := jobs[newJob.Id]
+	if found && !overwrite {
 		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
 	}

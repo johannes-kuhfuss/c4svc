@@ -10,4 +10,6 @@ func mapUrls() {
 	router.POST("/job", job.Create)
 	router.GET("/job/:job_id", job.Get)
 	router.DELETE("/job/:job_id", job.Delete)
+	router.PUT("/job/:job_id", job.Update)
+	//router.PUT("/job/:job_id", job.UpdatePart)
 }

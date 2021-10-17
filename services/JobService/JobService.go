@@ -20,6 +20,7 @@ type jobServiceInterface interface {
 	Create(domain.Job) (*domain.Job, rest_errors.RestErr)
 	Get(string) (*domain.Job, rest_errors.RestErr)
 	Delete(string) rest_errors.RestErr
+	Update(string, domain.Job, bool) (*domain.Job, rest_errors.RestErr)
 }
 
 func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
@@ -42,7 +43,7 @@ func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestE
 	}
 	request.Type = inputJob.Type
 	request.Status = domain.JobStatusCreated
-	savedJob, err := domain.JobDao.Save(request)
+	savedJob, err := domain.JobDao.Save(request, false)
 	if err != nil {
 		return nil, err
 	}
@@ -63,4 +64,29 @@ func (j *jobService) Delete(jobId string) rest_errors.RestErr {
 		return err
 	}
 	return nil
+}
+
+func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*domain.Job, rest_errors.RestErr) {
+	job, err := domain.JobDao.Get(jobId)
+	if err != nil {
+		return nil, err
+	}
+	if err := inputJob.Validate(); err != nil {
+		return nil, err
+	}
+	request := domain.Job{}
+	request.Id = job.Id
+	request.Name = inputJob.Name
+	request.CreatedAt = job.CreatedAt
+	request.CreatedBy = job.CreatedBy
+	request.ModifiedAt = date_utils.GetNowUtcString()
+	request.SrcUrl = inputJob.SrcUrl
+	request.DstUrl = inputJob.DstUrl
+	request.Type = inputJob.Type
+
+	savedJob, err := domain.JobDao.Save(request, true)
+	if err != nil {
+		return nil, err
+	}
+	return savedJob, nil
 }
