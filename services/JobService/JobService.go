@@ -71,18 +71,38 @@ func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*d
 	if err != nil {
 		return nil, err
 	}
-	if err := inputJob.Validate(); err != nil {
-		return nil, err
+	if !partial {
+		if err := inputJob.Validate(); err != nil {
+			return nil, err
+		}
 	}
 	request := domain.Job{}
 	request.Id = job.Id
-	request.Name = inputJob.Name
 	request.CreatedAt = job.CreatedAt
 	request.CreatedBy = job.CreatedBy
 	request.ModifiedAt = date_utils.GetNowUtcString()
-	request.SrcUrl = inputJob.SrcUrl
-	request.DstUrl = inputJob.DstUrl
-	request.Type = inputJob.Type
+	request.Status = job.Status
+	request.FileC4Id = job.FileC4Id
+	if partial && strings.TrimSpace(inputJob.Name) == "" {
+		request.Name = job.Name
+	} else {
+		request.Name = inputJob.Name
+	}
+	if partial && strings.TrimSpace(inputJob.SrcUrl) == "" {
+		request.SrcUrl = job.SrcUrl
+	} else {
+		request.SrcUrl = inputJob.SrcUrl
+	}
+	if partial && strings.TrimSpace(inputJob.DstUrl) == "" {
+		request.SrcUrl = job.DstUrl
+	} else {
+		request.SrcUrl = inputJob.DstUrl
+	}
+	if partial && (inputJob.Type == "") {
+		request.Type = job.Type
+	} else {
+		request.Type = inputJob.Type
+	}
 
 	savedJob, err := domain.JobDao.Save(request, true)
 	if err != nil {

@@ -62,15 +62,37 @@ func Delete(c *gin.Context) {
 	c.String(http.StatusNoContent, "")
 }
 
-func Update(c *gin.Context) {
-	partial := false
+func validateUpdate(c *gin.Context) (id string, job domain.Job, err rest_errors.RestErr) {
 	var inputJob domain.Job
 	if err := c.ShouldBindJSON(&inputJob); err != nil {
 		apiErr := rest_errors.NewBadRequestError("invalid json body")
-		c.JSON(apiErr.StatusCode(), apiErr)
-		return
+		return "", inputJob, apiErr
 	}
 	jobId, err := getJobId(c.Param("job_id"))
+	if err != nil {
+		return "", inputJob, err
+	}
+	return jobId, inputJob, nil
+}
+
+func Update(c *gin.Context) {
+	partial := false
+	jobId, inputJob, err := validateUpdate(c)
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	result, err := services.JobService.Update(jobId, inputJob, partial)
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func UpdatePart(c *gin.Context) {
+	partial := true
+	jobId, inputJob, err := validateUpdate(c)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
