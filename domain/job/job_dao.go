@@ -17,7 +17,7 @@ var (
 			ModifiedBy: "",
 			SrcUrl:     "http://server/path1/file1.ext",
 			DstUrl:     "",
-			Type:       "JobTypeCreate",
+			Type:       "Create",
 			Status:     "Running",
 			FileC4Id:   "abcdefg",
 		},
