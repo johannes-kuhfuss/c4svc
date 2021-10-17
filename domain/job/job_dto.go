@@ -49,3 +49,5 @@ func (j *Job) Validate() rest_errors.RestErr {
 	}
 	return nil
 }
+
+type Jobs []Job
