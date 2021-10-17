@@ -7,6 +7,7 @@ import (
 
 func mapUrls() {
 	router.GET("/ping", ping.Pong)
-	router.POST("/job", job.CreateJob)
-	router.GET("/job/:job_id", job.GetJob)
+	router.POST("/job", job.Create)
+	router.GET("/job/:job_id", job.Get)
+	router.DELETE("/job/:job_id", job.Delete)
 }

@@ -19,6 +19,7 @@ var (
 			DstUrl:     "",
 			Type:       "JobTypeCreate",
 			Status:     "Running",
+			FileC4Id:   "abcdefg",
 		},
 	}
 
@@ -26,13 +27,14 @@ var (
 )
 
 type jobDaoInterface interface {
-	GetJob(string) (*Job, rest_errors.RestErr)
-	SaveJob(job Job) (*Job, rest_errors.RestErr)
+	Get(string) (*Job, rest_errors.RestErr)
+	Save(job Job) (*Job, rest_errors.RestErr)
+	Delete(string) rest_errors.RestErr
 }
 
 type jobDao struct{}
 
-func (job *jobDao) GetJob(jobId string) (*Job, rest_errors.RestErr) {
+func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	if job := jobs[jobId]; job != nil {
 		return job, nil
 	}
@@ -40,11 +42,20 @@ func (job *jobDao) GetJob(jobId string) (*Job, rest_errors.RestErr) {
 	return nil, err
 }
 
-func (job *jobDao) SaveJob(newJob Job) (*Job, rest_errors.RestErr) {
+func (job *jobDao) Save(newJob Job) (*Job, rest_errors.RestErr) {
 	if _, found := jobs[newJob.Id]; found {
 		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
 	}
 	jobs[newJob.Id] = &newJob
 	return &newJob, nil
+}
+
+func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
+	if job := jobs[jobId]; job != nil {
+		delete(jobs, jobId)
+		return nil
+	}
+	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
+	return err
 }

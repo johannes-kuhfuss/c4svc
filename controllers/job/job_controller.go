@@ -18,7 +18,7 @@ func getJobId(jobIdParam string) (string, rest_errors.RestErr) {
 	return jobId.String(), nil
 }
 
-func CreateJob(c *gin.Context) {
+func Create(c *gin.Context) {
 	var newJob domain.Job
 	if err := c.ShouldBindJSON(&newJob); err != nil {
 		apiErr := rest_errors.NewBadRequestError("invalid json body")
@@ -26,7 +26,7 @@ func CreateJob(c *gin.Context) {
 		return
 	}
 
-	result, err := services.JobService.CreateJob(newJob)
+	result, err := services.JobService.Create(newJob)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
@@ -34,16 +34,30 @@ func CreateJob(c *gin.Context) {
 	c.JSON(http.StatusCreated, result)
 }
 
-func GetJob(c *gin.Context) {
+func Get(c *gin.Context) {
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
 	}
-	job, err := services.JobService.GetJob(jobId)
+	job, err := services.JobService.Get(jobId)
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
 		return
 	}
 	c.JSON(http.StatusOK, job)
+}
+
+func Delete(c *gin.Context) {
+	jobId, err := getJobId(c.Param("job_id"))
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	err = services.JobService.Delete(jobId)
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusOK, err)
 }
