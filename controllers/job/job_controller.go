@@ -59,5 +59,5 @@ func Delete(c *gin.Context) {
 		c.JSON(err.StatusCode(), err)
 		return
 	}
-	c.JSON(http.StatusOK, err)
+	c.String(http.StatusNoContent, "")
 }
