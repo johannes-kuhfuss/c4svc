@@ -7,22 +7,7 @@ import (
 )
 
 var (
-	jobs = map[string]*Job{
-		"1zXgBZNnBG1msmF1ARQK9ZphbbO": {
-			Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
-			Name:       "Job 1",
-			CreatedAt:  "2021-10-15T15:00:00Z",
-			CreatedBy:  "user A",
-			ModifiedAt: "",
-			ModifiedBy: "",
-			SrcUrl:     "http://server/path1/file1.ext",
-			DstUrl:     "",
-			Type:       "Create",
-			Status:     "Running",
-			FileC4Id:   "abcdefg",
-		},
-	}
-
+	jobs                   = map[string]*Job{}
 	JobDao jobDaoInterface = &jobDao{}
 )
 
@@ -33,6 +18,14 @@ type jobDaoInterface interface {
 }
 
 type jobDao struct{}
+
+func addJob(newJob Job) {
+	jobs[newJob.Id] = &newJob
+}
+
+func removeJob(delJob Job) {
+	delete(jobs, delJob.Id)
+}
 
 func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	if job := jobs[jobId]; job != nil {
@@ -48,13 +41,13 @@ func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) 
 		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
 	}
-	jobs[newJob.Id] = &newJob
+	addJob(newJob)
 	return &newJob, nil
 }
 
 func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
-	if job := jobs[jobId]; job != nil {
-		delete(jobs, jobId)
+	if delJob := jobs[jobId]; delJob != nil {
+		removeJob(*delJob)
 		return nil
 	}
 	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
