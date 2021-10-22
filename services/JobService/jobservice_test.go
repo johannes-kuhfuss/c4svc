@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	//jobDaoMock      jobsDaoMock
 	getJobFunction    func(jobId string) (*domain.Job, rest_errors.RestErr)
 	saveJobFunction   func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr)
 	deleteJobFunction func(jobId string) rest_errors.RestErr
@@ -74,7 +73,7 @@ func TestGetJobNoError(t *testing.T) {
 
 func TestCreateJobInvalidJobType(t *testing.T) {
 	newJob := domain.Job{
-		Type: "Does not exist",
+		Type: "invalid_Type",
 	}
 	createJob, err := JobService.Create(newJob)
 	assert.Nil(t, createJob)
@@ -179,4 +178,169 @@ func TestDeleteJobNoError(t *testing.T) {
 	}
 	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
 	assert.Nil(t, deleteErr)
+}
+
+func TestUpdateJobNotFound(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return nil, rest_errors.NewNotFoundError("job not found")
+	}
+	inputJob := domain.Job{}
+	updateJob, err := JobService.Update("", inputJob, false)
+	assert.Nil(t, updateJob)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, "job not found", err.Message())
+}
+
+func TestUpdateJobValidateFailure(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "",
+			Type:       "Create",
+			Status:     "Running",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	inputJob := domain.Job{
+		Name:       "",
+		CreatedAt:  "2022-11-16T16:01:01Z",
+		CreatedBy:  "user B",
+		ModifiedAt: "2022-11-16T16:01:01Z",
+		ModifiedBy: "user C",
+		SrcUrl:     "http://server3/path3/file3.ext",
+		DstUrl:     "http://server2/path2/file2.ext",
+		Type:       "not_valid",
+		Status:     "Created",
+		FileC4Id:   "xyz",
+	}
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	updateJob, err := JobService.Update(id, inputJob, false)
+	assert.Nil(t, updateJob)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "invalid job type", err.Message())
+}
+
+func TestUpdateJobFullUpdate(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "",
+			Type:       "Create",
+			Status:     "Running",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	inputJob := domain.Job{
+		Name:       "",
+		CreatedAt:  "2022-11-16T16:01:01Z",
+		CreatedBy:  "user B",
+		ModifiedAt: "2022-11-16T16:01:01Z",
+		ModifiedBy: "user C",
+		SrcUrl:     "http://server3/path3/file3.ext",
+		DstUrl:     "http://server2/path2/file2.ext",
+		Type:       "CreateAndRename",
+		Status:     "Created",
+		FileC4Id:   "xyz",
+	}
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+		return &newJob, nil
+	}
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	updateJob, err := JobService.Update(id, inputJob, false)
+	assert.NotNil(t, updateJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, id, updateJob.Id)
+	assert.EqualValues(t, inputJob.Name, updateJob.Name)
+	assert.EqualValues(t, "2021-10-15T15:00:00Z", updateJob.CreatedAt)
+	assert.EqualValues(t, "user A", updateJob.CreatedBy)
+	assert.NotEqualValues(t, "", updateJob.ModifiedAt)
+	assert.EqualValues(t, "http://server3/path3/file3.ext", updateJob.SrcUrl)
+	assert.EqualValues(t, "http://server2/path2/file2.ext", updateJob.DstUrl)
+	assert.EqualValues(t, "CreateAndRename", updateJob.Type)
+	assert.EqualValues(t, "Running", updateJob.Status)
+	assert.EqualValues(t, "abcdefg", updateJob.FileC4Id)
+}
+
+func TestUpdateJobPartialUpdate(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "http://server/path2/file2.ext",
+			Type:       "CreateAndRename",
+			Status:     "Running",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	inputJob := domain.Job{
+		Name:   "",
+		DstUrl: "",
+	}
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+		return &newJob, nil
+	}
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	updateJob, err := JobService.Update(id, inputJob, true)
+	assert.NotNil(t, updateJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, id, updateJob.Id)
+	assert.EqualValues(t, "Job 1", updateJob.Name)
+	assert.EqualValues(t, "2021-10-15T15:00:00Z", updateJob.CreatedAt)
+	assert.EqualValues(t, "user A", updateJob.CreatedBy)
+	assert.NotEqualValues(t, "", updateJob.ModifiedAt)
+	assert.EqualValues(t, "http://server/path1/file1.ext", updateJob.SrcUrl)
+	assert.EqualValues(t, "http://server/path2/file2.ext", updateJob.DstUrl)
+	assert.EqualValues(t, "CreateAndRename", updateJob.Type)
+	assert.EqualValues(t, "Running", updateJob.Status)
+	assert.EqualValues(t, "abcdefg", updateJob.FileC4Id)
+}
+
+func TestUpdateJobSaveError(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "http://server/path2/file2.ext",
+			Type:       "CreateAndRename",
+			Status:     "Running",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	inputJob := domain.Job{
+		Name:   "",
+		DstUrl: "",
+	}
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+		return nil, rest_errors.NewNotFoundError("could not save job")
+	}
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	updateJob, err := JobService.Update(id, inputJob, true)
+	assert.Nil(t, updateJob)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, "could not save job", err.Message())
 }
