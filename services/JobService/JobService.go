@@ -94,9 +94,9 @@ func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*d
 		request.SrcUrl = inputJob.SrcUrl
 	}
 	if partial && strings.TrimSpace(inputJob.DstUrl) == "" {
-		request.SrcUrl = job.DstUrl
+		request.DstUrl = job.DstUrl
 	} else {
-		request.SrcUrl = inputJob.DstUrl
+		request.DstUrl = inputJob.DstUrl
 	}
 	if partial && (inputJob.Type == "") {
 		request.Type = job.Type
