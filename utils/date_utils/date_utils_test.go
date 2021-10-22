@@ -8,13 +8,13 @@ import (
 )
 
 func TestConst(t *testing.T) {
-	assert.EqualValues(t, time.RFC3339, apiDateLayout)
+	assert.EqualValues(t, time.RFC3339, ApiDateLayout)
 }
 
 func TestGetNowUtcString(t *testing.T) {
 	now := GetNowUtcString()
-	date, err := time.Parse(time.RFC3339, now)
+	date, err := time.Parse(ApiDateLayout, now)
 	assert.NotNil(t, date)
 	assert.Nil(t, err)
-	assert.EqualValues(t, date.Format(time.RFC3339), now)
+	assert.EqualValues(t, date.Format(ApiDateLayout), now)
 }

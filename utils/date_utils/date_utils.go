@@ -3,7 +3,7 @@ package date_utils
 import "time"
 
 const (
-	apiDateLayout = time.RFC3339
+	ApiDateLayout = time.RFC3339
 )
 
 func GetNowUtc() time.Time {
@@ -11,5 +11,5 @@ func GetNowUtc() time.Time {
 }
 
 func GetNowUtcString() string {
-	return GetNowUtc().Format(apiDateLayout)
+	return GetNowUtc().Format(ApiDateLayout)
 }
