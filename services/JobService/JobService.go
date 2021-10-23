@@ -59,9 +59,17 @@ func (j *jobService) Get(jobId string) (*domain.Job, rest_errors.RestErr) {
 }
 
 func (j *jobService) Delete(jobId string) rest_errors.RestErr {
-	err := domain.JobDao.Delete(jobId)
+	job, err := domain.JobDao.Get(jobId)
 	if err != nil {
 		return err
+	}
+	if job.Status == domain.JobStatusRunning {
+		statusErr := rest_errors.NewProcessingConflictError("Cannot delete job in status running")
+		return statusErr
+	}
+	deleteErr := domain.JobDao.Delete(jobId)
+	if deleteErr != nil {
+		return deleteErr
 	}
 	return nil
 }
@@ -70,6 +78,10 @@ func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*d
 	job, err := domain.JobDao.Get(jobId)
 	if err != nil {
 		return nil, err
+	}
+	if job.Status != domain.JobStatusCreated {
+		statusErr := rest_errors.NewProcessingConflictError("Cannot modify job in status other than created")
+		return nil, statusErr
 	}
 	if !partial {
 		if err := inputJob.Validate(); err != nil {

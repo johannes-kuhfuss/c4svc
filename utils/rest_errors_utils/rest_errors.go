@@ -84,3 +84,10 @@ func NewInternalServerError(msg string, err error) RestErr {
 	}
 	return result
 }
+
+func NewProcessingConflictError(msg string) RestErr {
+	return restErr{
+		ErrMessage:    msg,
+		ErrStatusCode: http.StatusConflict,
+	}
+}

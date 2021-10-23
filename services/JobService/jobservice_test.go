@@ -60,7 +60,7 @@ func TestGetJobNoError(t *testing.T) {
 			SrcUrl:     "http://server/path1/file1.ext",
 			DstUrl:     "",
 			Type:       "Create",
-			Status:     "Running",
+			Status:     "Created",
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
@@ -163,6 +163,9 @@ func TestCreateJobSaveError(t *testing.T) {
 }
 
 func TestDeleteJobNotFound(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return nil, rest_errors.NewNotFoundError("job with Id 1zXgBZNnBG1msmF1ARQK9ZphbbO does not exist")
+	}
 	deleteJobFunction = func(jobId string) rest_errors.RestErr {
 		return rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
 	}
@@ -172,7 +175,72 @@ func TestDeleteJobNotFound(t *testing.T) {
 	assert.EqualValues(t, "job with Id 1zXgBZNnBG1msmF1ARQK9ZphbbO does not exist", deleteErr.Message())
 }
 
+func TestDeleteJobStatusError(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "",
+			Type:       "Create",
+			Status:     "Running",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	deleteJobFunction = func(jobId string) rest_errors.RestErr {
+		return nil
+	}
+	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
+	assert.NotNil(t, deleteErr)
+	assert.EqualValues(t, http.StatusConflict, deleteErr.StatusCode())
+	assert.EqualValues(t, "Cannot delete job in status running", deleteErr.Message())
+}
+
+func TestDeleteDeleteError(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "",
+			Type:       "Create",
+			Status:     "Created",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	deleteJobFunction = func(jobId string) rest_errors.RestErr {
+		return rest_errors.NewInternalServerError("could not delete job", nil)
+	}
+	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
+	assert.NotNil(t, deleteErr)
+	assert.EqualValues(t, http.StatusInternalServerError, deleteErr.StatusCode())
+	assert.EqualValues(t, "could not delete job", deleteErr.Message())
+}
+
 func TestDeleteJobNoError(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "",
+			Type:       "Create",
+			Status:     "Created",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
 	deleteJobFunction = func(jobId string) rest_errors.RestErr {
 		return nil
 	}
@@ -204,7 +272,7 @@ func TestUpdateJobValidateFailure(t *testing.T) {
 			SrcUrl:     "http://server/path1/file1.ext",
 			DstUrl:     "",
 			Type:       "Create",
-			Status:     "Running",
+			Status:     "Created",
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
@@ -228,6 +296,42 @@ func TestUpdateJobValidateFailure(t *testing.T) {
 	assert.EqualValues(t, "invalid job type", err.Message())
 }
 
+func TestUpdateJobStatusError(t *testing.T) {
+	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         jobId,
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "",
+			Type:       "Create",
+			Status:     "Failed",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	inputJob := domain.Job{
+		Name:       "",
+		CreatedAt:  "2022-11-16T16:01:01Z",
+		CreatedBy:  "user B",
+		ModifiedAt: "2022-11-16T16:01:01Z",
+		ModifiedBy: "user C",
+		SrcUrl:     "http://server3/path3/file3.ext",
+		DstUrl:     "http://server2/path2/file2.ext",
+		Type:       "not_valid",
+		Status:     "Failed",
+		FileC4Id:   "xyz",
+	}
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	updateJob, err := JobService.Update(id, inputJob, false)
+	assert.Nil(t, updateJob)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusConflict, err.StatusCode())
+	assert.EqualValues(t, "Cannot modify job in status other than created", err.Message())
+}
+
 func TestUpdateJobFullUpdate(t *testing.T) {
 	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
 		return &domain.Job{
@@ -240,7 +344,7 @@ func TestUpdateJobFullUpdate(t *testing.T) {
 			SrcUrl:     "http://server/path1/file1.ext",
 			DstUrl:     "",
 			Type:       "Create",
-			Status:     "Running",
+			Status:     "Created",
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
@@ -253,7 +357,7 @@ func TestUpdateJobFullUpdate(t *testing.T) {
 		SrcUrl:     "http://server3/path3/file3.ext",
 		DstUrl:     "http://server2/path2/file2.ext",
 		Type:       "CreateAndRename",
-		Status:     "Created",
+		Status:     "Running",
 		FileC4Id:   "xyz",
 	}
 	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
@@ -271,7 +375,7 @@ func TestUpdateJobFullUpdate(t *testing.T) {
 	assert.EqualValues(t, "http://server3/path3/file3.ext", updateJob.SrcUrl)
 	assert.EqualValues(t, "http://server2/path2/file2.ext", updateJob.DstUrl)
 	assert.EqualValues(t, "CreateAndRename", updateJob.Type)
-	assert.EqualValues(t, "Running", updateJob.Status)
+	assert.EqualValues(t, "Created", updateJob.Status)
 	assert.EqualValues(t, "abcdefg", updateJob.FileC4Id)
 }
 
@@ -287,7 +391,7 @@ func TestUpdateJobPartialUpdate(t *testing.T) {
 			SrcUrl:     "http://server/path1/file1.ext",
 			DstUrl:     "http://server/path2/file2.ext",
 			Type:       "CreateAndRename",
-			Status:     "Running",
+			Status:     "Created",
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
@@ -310,7 +414,7 @@ func TestUpdateJobPartialUpdate(t *testing.T) {
 	assert.EqualValues(t, "http://server/path1/file1.ext", updateJob.SrcUrl)
 	assert.EqualValues(t, "http://server/path2/file2.ext", updateJob.DstUrl)
 	assert.EqualValues(t, "CreateAndRename", updateJob.Type)
-	assert.EqualValues(t, "Running", updateJob.Status)
+	assert.EqualValues(t, "Created", updateJob.Status)
 	assert.EqualValues(t, "abcdefg", updateJob.FileC4Id)
 }
 
@@ -326,7 +430,7 @@ func TestUpdateJobSaveError(t *testing.T) {
 			SrcUrl:     "http://server/path1/file1.ext",
 			DstUrl:     "http://server/path2/file2.ext",
 			Type:       "CreateAndRename",
-			Status:     "Running",
+			Status:     "Created",
 			FileC4Id:   "abcdefg",
 		}, nil
 	}

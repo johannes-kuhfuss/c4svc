@@ -16,7 +16,6 @@ func TestConstJobType(t *testing.T) {
 
 func TestConstJobStatus(t *testing.T) {
 	assert.EqualValues(t, JobStatusCreated, "Created")
-	assert.EqualValues(t, JobStatusQueued, "Queued")
 	assert.EqualValues(t, JobStatusRunning, "Running")
 	assert.EqualValues(t, JobStatusFinished, "Finished")
 	assert.EqualValues(t, JobStatusFailed, "Failed")
