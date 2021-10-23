@@ -14,12 +14,12 @@ var (
 )
 
 func init() {
-	logger.Info("Initializing router")
+	logger.Debug("Initializing router")
 	gin.SetMode(config.GinMode())
 	router = gin.New()
 	router.Use(ginzap.Ginzap(logger.GetLog(), time.RFC3339, true))
 	router.Use(ginzap.RecoveryWithZap(logger.GetLog(), true))
-	logger.Info("Done initializing router")
+	logger.Debug("Done initializing router")
 }
 
 func StartApp() {

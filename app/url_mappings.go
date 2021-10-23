@@ -7,7 +7,7 @@ import (
 )
 
 func mapUrls() {
-	logger.Info("Mapping URLs")
+	logger.Debug("Mapping URLs")
 
 	router.GET("/ping", ping.Pong)
 	router.POST("/job", job.Create)
@@ -16,5 +16,5 @@ func mapUrls() {
 	router.PUT("/job/:job_id", job.Update)
 	router.PATCH("/job/:job_id", job.UpdatePart)
 
-	logger.Info("Done mapping URLs")
+	logger.Debug("Done mapping URLs")
 }
