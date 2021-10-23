@@ -2,14 +2,23 @@ package domain
 
 import (
 	"fmt"
+	"sync"
 
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
 var (
-	jobs                   = map[string]*Job{}
+	jobs = jobList{
+		list: make(map[string]*Job),
+		mu:   sync.Mutex{},
+	}
 	JobDao jobDaoInterface = &jobDao{}
 )
+
+type jobList struct {
+	list map[string]*Job
+	mu   sync.Mutex
+}
 
 type jobDaoInterface interface {
 	Get(string) (*Job, rest_errors.RestErr)
@@ -20,15 +29,17 @@ type jobDaoInterface interface {
 type jobDao struct{}
 
 func addJob(newJob Job) {
-	jobs[newJob.Id] = &newJob
+	jobs.list[newJob.Id] = &newJob
 }
 
 func removeJob(delJob Job) {
-	delete(jobs, delJob.Id)
+	delete(jobs.list, delJob.Id)
 }
 
 func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
-	if job := jobs[jobId]; job != nil {
+	jobs.mu.Lock()
+	defer jobs.mu.Unlock()
+	if job := jobs.list[jobId]; job != nil {
 		return job, nil
 	}
 	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
@@ -36,7 +47,9 @@ func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 }
 
 func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) {
-	_, found := jobs[newJob.Id]
+	jobs.mu.Lock()
+	defer jobs.mu.Unlock()
+	_, found := jobs.list[newJob.Id]
 	if found && !overwrite {
 		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
@@ -46,7 +59,9 @@ func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) 
 }
 
 func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
-	if delJob := jobs[jobId]; delJob != nil {
+	jobs.mu.Lock()
+	defer jobs.mu.Unlock()
+	if delJob := jobs.list[jobId]; delJob != nil {
 		removeJob(*delJob)
 		return nil
 	}
