@@ -44,14 +44,6 @@ func (m *jobsDaoMock) GetNext() (*domain.Job, rest_errors.RestErr) {
 	return getNextJobFunction()
 }
 
-func (m *jobsDaoMock) Finish(jobId string) rest_errors.RestErr {
-	return finishJobFunction(jobId)
-}
-
-func (m *jobsDaoMock) Fail(jobId string) rest_errors.RestErr {
-	return failJobFunction(jobId)
-}
-
 func TestGetJobNotFound(t *testing.T) {
 	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
 		return nil, rest_errors.NewNotFoundError("job with Id X does not exist")
