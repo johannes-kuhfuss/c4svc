@@ -12,7 +12,7 @@ const (
 )
 
 func Pong(c *gin.Context) {
-	logger.Info("Processing ping get request")
+	logger.Debug("Processing ping get request")
 	c.String(http.StatusOK, pong)
-	logger.Info("Done processing ping get request")
+	logger.Debug("Done processing ping get request")
 }

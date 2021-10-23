@@ -21,7 +21,7 @@ func getJobId(jobIdParam string) (string, rest_errors.RestErr) {
 }
 
 func Create(c *gin.Context) {
-	logger.Info("Processing job create request")
+	logger.Debug("Processing job create request")
 	var newJob domain.Job
 	if err := c.ShouldBindJSON(&newJob); err != nil {
 		logger.Error("invalid JSON body in create request", err)
@@ -37,11 +37,11 @@ func Create(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, result)
-	logger.Info("Done processing job create request")
+	logger.Debug("Done processing job create request")
 }
 
 func Get(c *gin.Context) {
-	logger.Info("Processing job get request")
+	logger.Debug("Processing job get request")
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
@@ -54,11 +54,11 @@ func Get(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, job)
-	logger.Info("Done processing job get request")
+	logger.Debug("Done processing job get request")
 }
 
 func Delete(c *gin.Context) {
-	logger.Info("Processing job delete request")
+	logger.Debug("Processing job delete request")
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
@@ -71,10 +71,11 @@ func Delete(c *gin.Context) {
 		return
 	}
 	c.String(http.StatusNoContent, "")
-	logger.Info("Done processing job delete request")
+	logger.Debug("Done processing job delete request")
 }
 
 func validateUpdate(c *gin.Context) (id string, job domain.Job, err rest_errors.RestErr) {
+	logger.Debug("Validating update")
 	var inputJob domain.Job
 	if err := c.ShouldBindJSON(&inputJob); err != nil {
 		apiErr := rest_errors.NewBadRequestError("invalid json body")
@@ -84,11 +85,12 @@ func validateUpdate(c *gin.Context) (id string, job domain.Job, err rest_errors.
 	if err != nil {
 		return "", inputJob, err
 	}
+	logger.Debug("Done validating update")
 	return jobId, inputJob, nil
 }
 
 func Update(c *gin.Context) {
-	logger.Info("Processing job full update request")
+	logger.Debug("Processing job full update request")
 	partial := false
 	jobId, inputJob, err := validateUpdate(c)
 	if err != nil {
@@ -103,11 +105,11 @@ func Update(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result)
-	logger.Info("Done processing job full update request")
+	logger.Debug("Done processing job full update request")
 }
 
 func UpdatePart(c *gin.Context) {
-	logger.Info("Processing job partial update request")
+	logger.Debug("Processing job partial update request")
 	partial := true
 	jobId, inputJob, err := validateUpdate(c)
 	if err != nil {
@@ -122,5 +124,5 @@ func UpdatePart(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result)
-	logger.Info("Done processing job partial update request")
+	logger.Debug("Done processing job partial update request")
 }
