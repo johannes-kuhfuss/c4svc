@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	domain "github.com/johannes-kuhfuss/c4/domain/job"
-	services "github.com/johannes-kuhfuss/c4/services/JobService"
+	services "github.com/johannes-kuhfuss/c4/services/jobservice"
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 	"github.com/segmentio/ksuid"
 )

@@ -73,6 +73,10 @@ func GetLogger() loggerInterface {
 	return log
 }
 
+func GetLog() *zap.Logger {
+	return log.log
+}
+
 func (l logger) Printf(format string, v ...interface{}) {
 	if len(v) == 0 {
 		Info(format)
