@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	getJobFunction    func(jobId string) (*domain.Job, rest_errors.RestErr)
-	saveJobFunction   func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr)
-	deleteJobFunction func(jobId string) rest_errors.RestErr
+	getJobFunction     func(jobId string) (*domain.Job, rest_errors.RestErr)
+	saveJobFunction    func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr)
+	deleteJobFunction  func(jobId string) rest_errors.RestErr
+	getNextJobFunction func() (*domain.Job, rest_errors.RestErr)
 )
 
 type jobsDaoMock struct{}
@@ -35,6 +36,10 @@ func (m *jobsDaoMock) Save(newJob domain.Job, overwrite bool) (*domain.Job, rest
 
 func (m *jobsDaoMock) Delete(jobId string) rest_errors.RestErr {
 	return deleteJobFunction(jobId)
+}
+
+func (m *jobsDaoMock) GetNext() (*domain.Job, rest_errors.RestErr) {
+	return getNextJobFunction()
 }
 
 func TestGetJobNotFound(t *testing.T) {

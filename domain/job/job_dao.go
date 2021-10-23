@@ -3,7 +3,9 @@ package domain
 import (
 	"fmt"
 	"sync"
+	"time"
 
+	"github.com/johannes-kuhfuss/c4/utils/date_utils"
 	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
 )
 
@@ -24,6 +26,7 @@ type jobDaoInterface interface {
 	Get(string) (*Job, rest_errors.RestErr)
 	Save(Job, bool) (*Job, rest_errors.RestErr)
 	Delete(string) rest_errors.RestErr
+	GetNext() (*Job, rest_errors.RestErr)
 }
 
 type jobDao struct{}
@@ -76,4 +79,28 @@ func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
 	}
 	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
 	return err
+}
+
+func (job *jobDao) GetNext() (*Job, rest_errors.RestErr) {
+	nextJobId := ""
+	nextJobDate := date_utils.GetNowUtc()
+	if len(jobs.list) == 0 {
+		err := rest_errors.NewNotFoundError("no jobs in list")
+		return nil, err
+	}
+	for _, v := range jobs.list {
+		if v.Status == JobStatusCreated {
+			curJobDate, err := time.Parse(date_utils.ApiDateLayout, v.CreatedAt)
+			_ = err
+			if curJobDate.Before(nextJobDate) {
+				nextJobDate = curJobDate
+				nextJobId = v.Id
+			}
+		}
+	}
+	getJob, err := getJob(nextJobId)
+	if err != nil {
+		return nil, err
+	}
+	return getJob, nil
 }
