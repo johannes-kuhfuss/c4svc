@@ -21,6 +21,7 @@ type jobServiceInterface interface {
 	Get(string) (*domain.Job, rest_errors.RestErr)
 	Delete(string) rest_errors.RestErr
 	Update(string, domain.Job, bool) (*domain.Job, rest_errors.RestErr)
+	GetNext() (*domain.Job, rest_errors.RestErr)
 }
 
 func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
@@ -121,4 +122,12 @@ func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*d
 		return nil, err
 	}
 	return savedJob, nil
+}
+
+func (j *jobService) GetNext() (*domain.Job, rest_errors.RestErr) {
+	job, err := domain.JobDao.GetNext()
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
 }

@@ -453,3 +453,37 @@ func TestUpdateJobSaveError(t *testing.T) {
 	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
 	assert.EqualValues(t, "could not save job", err.Message())
 }
+
+func TestGetNextNoJob(t *testing.T) {
+	getNextJobFunction = func() (*domain.Job, rest_errors.RestErr) {
+		return nil, rest_errors.NewNotFoundError("no jobs in list")
+	}
+	nextJob, err := JobService.GetNext()
+	assert.Nil(t, nextJob)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, "no jobs in list", err.Message())
+}
+
+func TestGetNextNoErro(t *testing.T) {
+	getNextJobFunction = func() (*domain.Job, rest_errors.RestErr) {
+		return &domain.Job{
+			Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "http://server/path2/file2.ext",
+			Type:       "CreateAndRename",
+			Status:     "Created",
+			FileC4Id:   "abcdefg",
+		}, nil
+	}
+	nextJob, err := JobService.GetNext()
+	assert.NotNil(t, nextJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, "1zXgBZNnBG1msmF1ARQK9ZphbbO", nextJob.Id)
+	assert.EqualValues(t, "Job 1", nextJob.Name)
+}
