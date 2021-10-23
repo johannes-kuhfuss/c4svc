@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	ginMode = "debug" // release, debug, test
+	ginMode      = "debug" // release, debug, test
+	ShutDown     = false
+	JobCycleTime = 10 // in seconds
 )
 
 func init() {
