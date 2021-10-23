@@ -29,14 +29,18 @@ type jobDaoInterface interface {
 type jobDao struct{}
 
 func addJob(newJob Job) {
+	jobs.mu.Lock()
+	defer jobs.mu.Unlock()
 	jobs.list[newJob.Id] = &newJob
 }
 
 func removeJob(delJob Job) {
+	jobs.mu.Lock()
+	defer jobs.mu.Unlock()
 	delete(jobs.list, delJob.Id)
 }
 
-func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
+func getJob(jobId string) (*Job, rest_errors.RestErr) {
 	jobs.mu.Lock()
 	defer jobs.mu.Unlock()
 	if job := jobs.list[jobId]; job != nil {
@@ -46,11 +50,17 @@ func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	return nil, err
 }
 
+func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
+	getJob, err := getJob(jobId)
+	if err != nil {
+		return nil, err
+	}
+	return getJob, nil
+}
+
 func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) {
-	jobs.mu.Lock()
-	defer jobs.mu.Unlock()
-	_, found := jobs.list[newJob.Id]
-	if found && !overwrite {
+	_, err := getJob(newJob.Id)
+	if err == nil && !overwrite {
 		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
 	}
@@ -59,9 +69,8 @@ func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) 
 }
 
 func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
-	jobs.mu.Lock()
-	defer jobs.mu.Unlock()
-	if delJob := jobs.list[jobId]; delJob != nil {
+	delJob, _ := getJob(jobId)
+	if delJob != nil {
 		removeJob(*delJob)
 		return nil
 	}
