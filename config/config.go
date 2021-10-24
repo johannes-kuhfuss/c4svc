@@ -2,15 +2,19 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4/utils/logger"
 )
 
 var (
-	ginMode      = "debug" // release, debug, test
-	ShutDown     = false
-	JobCycleTime = 10 // in seconds
+	ginMode           = "debug" // release, debug, test
+	ShutDown          = false
+	NoJobWaitTime     = (time.Second * 10)
+	DeleteFinishedAge = (time.Hour * 1)
+	DeleteFailedAge   = (time.Hour * 2)
+	WarnStatusAge     = (time.Hour * 5)
 )
 
 func init() {

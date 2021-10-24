@@ -33,7 +33,7 @@ func (jp *jobProcService) Process() {
 			logger.Debug(fmt.Sprintf("Done processing job with Id %v", curJob.Id))
 		} else {
 			logger.Debug("no job found. Sleeping...")
-			time.Sleep(time.Second * time.Duration(config.JobCycleTime))
+			time.Sleep(time.Second * time.Duration(config.NoJobWaitTime))
 		}
 
 	}
