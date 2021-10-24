@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,6 +28,7 @@ type jobDaoInterface interface {
 	Save(Job, bool) (*Job, rest_errors.RestErr)
 	Delete(string) rest_errors.RestErr
 	GetNext() (*Job, rest_errors.RestErr)
+	ChangeStatus(string, string) rest_errors.RestErr
 }
 
 type jobDao struct{}
@@ -90,8 +92,7 @@ func (job *jobDao) GetNext() (*Job, rest_errors.RestErr) {
 	}
 	for _, v := range jobs.list {
 		if v.Status == JobStatusCreated {
-			curJobDate, err := time.Parse(date_utils.ApiDateLayout, v.CreatedAt)
-			_ = err
+			curJobDate, _ := time.Parse(date_utils.ApiDateLayout, v.CreatedAt)
 			if curJobDate.Before(nextJobDate) {
 				nextJobDate = curJobDate
 				nextJobId = v.Id
@@ -103,4 +104,34 @@ func (job *jobDao) GetNext() (*Job, rest_errors.RestErr) {
 		return nil, err
 	}
 	return getJob, nil
+}
+
+func (job *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
+	getJob, err := getJob(jobId)
+	if err != nil {
+		return err
+	}
+	newStatus = strings.ToLower(newStatus)
+	if strings.ToLower(string(getJob.Status)) == newStatus {
+		return nil
+	}
+	switch newStatus {
+	case "created":
+		getJob.Status = JobStatusCreated
+	case "running":
+		getJob.Status = JobStatusRunning
+	case "failed":
+		getJob.Status = JobStatusFailed
+	case "finished":
+		getJob.Status = JobStatusFinished
+	default:
+		retErr := rest_errors.NewBadRequestError("invalid status value")
+		return retErr
+	}
+	changedJob, saveErr := JobDao.Save(*getJob, true)
+	if saveErr != nil {
+		return saveErr
+	}
+	_ = changedJob
+	return nil
 }

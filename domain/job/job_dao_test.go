@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -50,27 +51,29 @@ var (
 )
 
 func TestGetNotFound(t *testing.T) {
-	user, err := JobDao.Get("X")
+	id := "X"
+	user, err := JobDao.Get(id)
 	assert.Nil(t, user)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
-	assert.EqualValues(t, "job with Id X does not exist", err.Message())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v does not exist", id), err.Message())
 }
 
 func TestGetNoError(t *testing.T) {
 	addJob(job1)
 	defer removeJob(job1)
-	testJob, err := JobDao.Get("1zXgBZNnBG1msmF1ARQK9ZphbbO")
+	testJob, err := JobDao.Get(job1.Id)
 	assert.NotNil(t, testJob)
 	assert.Nil(t, err)
-	assert.EqualValues(t, "1zXgBZNnBG1msmF1ARQK9ZphbbO", testJob.Id)
+	assert.EqualValues(t, job1.Id, testJob.Id)
 }
 
 func TestSaveJobExistsNoOverwrite(t *testing.T) {
 	addJob(job1)
 	defer removeJob(job1)
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
 	newJob := Job{
-		Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
+		Id:         fmt.Sprintf("%v", id),
 		Name:       "Job 2",
 		CreatedAt:  "2021-10-15T15:00:00Z",
 		CreatedBy:  "user A",
@@ -86,15 +89,17 @@ func TestSaveJobExistsNoOverwrite(t *testing.T) {
 	assert.Nil(t, testJob)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
-	assert.EqualValues(t, "job with Id 1zXgBZNnBG1msmF1ARQK9ZphbbO already exists", err.Message())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v already exists", id), err.Message())
 }
 
 func TestSaveJobExistsOverwrite(t *testing.T) {
 	addJob(job1)
 	defer removeJob(job1)
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	name := "Job 2"
 	newJob := Job{
-		Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
-		Name:       "Job 2",
+		Id:         fmt.Sprintf("%v", id),
+		Name:       fmt.Sprintf("%v", name),
 		CreatedAt:  "2021-10-15T15:00:00Z",
 		CreatedBy:  "user A",
 		ModifiedAt: "",
@@ -108,21 +113,22 @@ func TestSaveJobExistsOverwrite(t *testing.T) {
 	testJob, err := JobDao.Save(newJob, true)
 	assert.NotNil(t, testJob)
 	assert.Nil(t, err)
-	assert.EqualValues(t, "1zXgBZNnBG1msmF1ARQK9ZphbbO", testJob.Id)
-	assert.EqualValues(t, "Job 2", testJob.Name)
+	assert.EqualValues(t, id, testJob.Id)
+	assert.EqualValues(t, name, testJob.Name)
 }
 
 func TestDeleteJobNotFound(t *testing.T) {
-	err := JobDao.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
+	err := JobDao.Delete(id)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
-	assert.EqualValues(t, "job with Id 1zXgBZNnBG1msmF1ARQK9ZphbbO does not exist", err.Message())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v does not exist", id), err.Message())
 }
 
 func TestDeleteJobNoError(t *testing.T) {
 	addJob(job1)
 	defer removeJob(job1)
-	err := JobDao.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
+	err := JobDao.Delete(job1.Id)
 	assert.Nil(t, err)
 }
 
@@ -144,6 +150,78 @@ func TestGetNextNoError(t *testing.T) {
 	nextJob, err := JobDao.GetNext()
 	assert.NotNil(t, nextJob)
 	assert.Nil(t, err)
-	assert.EqualValues(t, "1zXgBZNnBG1msmF1ARQK9ZphbdO", nextJob.Id)
-	assert.EqualValues(t, "Job 3", nextJob.Name)
+	assert.EqualValues(t, job3.Id, nextJob.Id)
+	assert.EqualValues(t, job3.Name, nextJob.Name)
+}
+
+func TestChangeStatusNoJob(t *testing.T) {
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbdO"
+	err := JobDao.ChangeStatus(id, "")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v does not exist", id), err.Message())
+}
+
+func TestChangeStatusInvalidStatus(t *testing.T) {
+	addJob(job3)
+	defer removeJob(job3)
+	err := JobDao.ChangeStatus(job3.Id, "invalidstatus")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "invalid status value", err.Message())
+}
+
+func TestChangeStatusSameStatus(t *testing.T) {
+	addJob(job3)
+	defer removeJob(job3)
+	err := JobDao.ChangeStatus(job3.Id, "created")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job3.Id)
+	assert.NotNil(t, testJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatus("Created"), testJob.Status)
+}
+
+func TestChangeStatusNoErrorCreated(t *testing.T) {
+	addJob(job1)
+	defer removeJob(job1)
+	err := JobDao.ChangeStatus(job1.Id, "created")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job1.Id)
+	assert.NotNil(t, testJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatus("Created"), testJob.Status)
+}
+
+func TestChangeStatusNoErrorRunning(t *testing.T) {
+	addJob(job3)
+	defer removeJob(job3)
+	err := JobDao.ChangeStatus(job3.Id, "running")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job3.Id)
+	assert.NotNil(t, testJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatus("Running"), testJob.Status)
+}
+
+func TestChangeStatusNoErrorFailed(t *testing.T) {
+	addJob(job3)
+	defer removeJob(job3)
+	err := JobDao.ChangeStatus(job3.Id, "failed")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job3.Id)
+	assert.NotNil(t, testJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatus("Failed"), testJob.Status)
+}
+
+func TestChangeStatusNoErrorFinished(t *testing.T) {
+	addJob(job3)
+	defer removeJob(job3)
+	err := JobDao.ChangeStatus(job3.Id, "finished")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job3.Id)
+	assert.NotNil(t, testJob)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatus("Finished"), testJob.Status)
 }
