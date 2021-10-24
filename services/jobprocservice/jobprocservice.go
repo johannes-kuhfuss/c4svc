@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/johannes-kuhfuss/c4/config"
@@ -22,14 +23,16 @@ func (jp *jobProcService) Process() {
 	for !config.ShutDown {
 		curJob, err := services.JobService.GetNext()
 		if err == nil {
-			time.Sleep(time.Second * time.Duration(time.Second*5))
+			logger.Debug(fmt.Sprintf("Found job with Id %v to process", curJob.Id))
+			// to do: process job
+			time.Sleep(time.Second * 5)
 			err = services.JobService.ChangeStatus(curJob.Id, "Finished")
 			if err != nil {
 				logger.Error("could not change job status", err)
 			}
-
+			logger.Debug(fmt.Sprintf("Done processing job with Id %v", curJob.Id))
 		} else {
-			logger.Info("no job found. Sleeping...")
+			logger.Debug("no job found. Sleeping...")
 			time.Sleep(time.Second * time.Duration(config.JobCycleTime))
 		}
 
