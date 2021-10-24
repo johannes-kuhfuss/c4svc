@@ -128,6 +128,7 @@ func (job *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.Rest
 		retErr := rest_errors.NewBadRequestError("invalid status value")
 		return retErr
 	}
+	getJob.ModifiedAt = date_utils.GetNowUtcString()
 	changedJob, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
