@@ -1,6 +1,10 @@
 package services
 
-import "github.com/johannes-kuhfuss/c4/utils/logger"
+import (
+	"time"
+
+	"github.com/johannes-kuhfuss/c4/config"
+)
 
 var (
 	JobCleanupService jobCleanupServiceInterface = &jobCleanupService{}
@@ -13,5 +17,7 @@ type jobCleanupServiceInterface interface {
 }
 
 func (jc *jobCleanupService) Cleanup() {
-	logger.Info("Cleaning up")
+	for !config.ShutDown {
+		time.Sleep(time.Hour * 1)
+	}
 }

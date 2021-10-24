@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/johannes-kuhfuss/c4/config"
-	services "github.com/johannes-kuhfuss/c4/services/jobservice"
 	"github.com/johannes-kuhfuss/c4/utils/logger"
 )
 
@@ -21,12 +20,12 @@ type jobProcServiceInterface interface {
 
 func (jp *jobProcService) Process() {
 	for !config.ShutDown {
-		curJob, err := services.JobService.GetNext()
+		curJob, err := JobService.GetNext()
 		if err == nil {
 			logger.Debug(fmt.Sprintf("Found job with Id %v to process", curJob.Id))
 			// to do: process job
 			time.Sleep(time.Second * 5)
-			err = services.JobService.ChangeStatus(curJob.Id, "Finished")
+			err = JobService.ChangeStatus(curJob.Id, "Finished")
 			if err != nil {
 				logger.Error("could not change job status", err)
 			}

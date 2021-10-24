@@ -6,8 +6,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4/config"
-	srv2 "github.com/johannes-kuhfuss/c4/services/jobcleanupservice"
-	srv1 "github.com/johannes-kuhfuss/c4/services/jobprocservice"
+	"github.com/johannes-kuhfuss/c4/services"
 	"github.com/johannes-kuhfuss/c4/utils/logger"
 )
 
@@ -29,9 +28,9 @@ func StartApp() {
 	mapUrls()
 
 	logger.Info("Starting job processor")
-	go srv1.JobProcService.Process()
+	go services.JobProcService.Process()
 	logger.Info("Starting job cleanup")
-	go srv2.JobCleanupService.Cleanup()
+	go services.JobCleanupService.Cleanup()
 
 	if err := router.Run(":8080"); err != nil {
 		logger.Error("Error while starting router", err)
