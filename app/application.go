@@ -6,6 +6,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4/config"
+	services "github.com/johannes-kuhfuss/c4/services/jobprocservice"
 	"github.com/johannes-kuhfuss/c4/utils/logger"
 )
 
@@ -25,6 +26,8 @@ func init() {
 func StartApp() {
 	logger.Info("Starting application")
 	mapUrls()
+
+	go services.JobProcService.Process()
 
 	if err := router.Run(":8080"); err != nil {
 		logger.Error("Error while starting router", err)
