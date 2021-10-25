@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/johannes-kuhfuss/c4/config"
+	"github.com/johannes-kuhfuss/c4/utils/date_utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,6 +48,19 @@ var (
 		DstUrl:     "",
 		Type:       "Create",
 		Status:     "Created",
+		FileC4Id:   "abcdefg",
+	}
+	job4 Job = Job{
+		Id:         "1zXgBZNnBG1msmF1ARQK9ZphbdO",
+		Name:       "Job 3",
+		CreatedAt:  "2021-10-14T14:00:00Z",
+		CreatedBy:  "user 3",
+		ModifiedAt: "",
+		ModifiedBy: "",
+		SrcUrl:     "http://server3/path3/file3.ext",
+		DstUrl:     "",
+		Type:       "Create",
+		Status:     "Finished",
 		FileC4Id:   "abcdefg",
 	}
 )
@@ -224,4 +239,25 @@ func TestChangeStatusNoErrorFinished(t *testing.T) {
 	assert.NotNil(t, testJob)
 	assert.Nil(t, err)
 	assert.EqualValues(t, JobStatus("Finished"), testJob.Status)
+}
+
+func TestCleanJobsNoJobs(t *testing.T) {
+	numJobs, err := JobDao.CleanJobs(config.DeleteFinishedAge, config.DeleteFailedAge)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, 0, numJobs)
+}
+
+func TestCleanJobsNoModDate(t *testing.T) {
+	addJob(job4)
+	numJobs, err := JobDao.CleanJobs(config.DeleteFinishedAge, config.DeleteFailedAge)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 0, numJobs)
+}
+
+func TestCleanJobsNoError(t *testing.T) {
+	job4.ModifiedAt = date_utils.GetNowUtc().Add(-config.DeleteFinishedAge).Format(date_utils.ApiDateLayout)
+	addJob(job4)
+	numJobs, err := JobDao.CleanJobs(config.DeleteFinishedAge, config.DeleteFailedAge)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 1, numJobs)
 }

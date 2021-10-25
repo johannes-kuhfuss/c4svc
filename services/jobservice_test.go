@@ -497,3 +497,21 @@ func TestGetNextNoErro(t *testing.T) {
 	assert.EqualValues(t, "1zXgBZNnBG1msmF1ARQK9ZphbbO", nextJob.Id)
 	assert.EqualValues(t, "Job 1", nextJob.Name)
 }
+
+func TestChangeStatusError(t *testing.T) {
+	changeStatusFunction = func(jobId string, newStatus string) rest_errors.RestErr {
+		return rest_errors.NewBadRequestError("invalid status value")
+	}
+	err := JobService.ChangeStatus("id", "invalid status")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "invalid status value", err.Message())
+}
+
+func TestChangeStatusNoError(t *testing.T) {
+	changeStatusFunction = func(jobId string, newStatus string) rest_errors.RestErr {
+		return nil
+	}
+	err := JobService.ChangeStatus("id", "valid status")
+	assert.Nil(t, err)
+}
