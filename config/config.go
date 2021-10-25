@@ -15,6 +15,7 @@ var (
 	DeleteFinishedAge = (time.Hour * 1)
 	DeleteFailedAge   = (time.Hour * 2)
 	WarnStatusAge     = (time.Hour * 5)
+	CleanupWaitTime   = (time.Hour * 1)
 )
 
 func init() {

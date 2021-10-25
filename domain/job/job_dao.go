@@ -29,6 +29,7 @@ type jobDaoInterface interface {
 	Delete(string) rest_errors.RestErr
 	GetNext() (*Job, rest_errors.RestErr)
 	ChangeStatus(string, string) rest_errors.RestErr
+	CleanJobs(time.Duration, time.Duration) (int, rest_errors.RestErr)
 }
 
 type jobDao struct{}
@@ -55,7 +56,7 @@ func getJob(jobId string) (*Job, rest_errors.RestErr) {
 	return nil, err
 }
 
-func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
+func (jd *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (job *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	return getJob, nil
 }
 
-func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) {
+func (jd *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) {
 	_, err := getJob(newJob.Id)
 	if err == nil && !overwrite {
 		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
@@ -73,7 +74,7 @@ func (job *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) 
 	return &newJob, nil
 }
 
-func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
+func (jd *jobDao) Delete(jobId string) rest_errors.RestErr {
 	delJob, _ := getJob(jobId)
 	if delJob != nil {
 		removeJob(*delJob)
@@ -83,7 +84,7 @@ func (job *jobDao) Delete(jobId string) rest_errors.RestErr {
 	return err
 }
 
-func (job *jobDao) GetNext() (*Job, rest_errors.RestErr) {
+func (jd *jobDao) GetNext() (*Job, rest_errors.RestErr) {
 	nextJobId := ""
 	nextJobDate := date_utils.GetNowUtc()
 	if len(jobs.list) == 0 {
@@ -106,7 +107,7 @@ func (job *jobDao) GetNext() (*Job, rest_errors.RestErr) {
 	return getJob, nil
 }
 
-func (job *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
+func (jd *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return err
@@ -129,10 +130,29 @@ func (job *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.Rest
 		return retErr
 	}
 	getJob.ModifiedAt = date_utils.GetNowUtcString()
-	changedJob, saveErr := JobDao.Save(*getJob, true)
+	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
 	}
-	_ = changedJob
 	return nil
+}
+
+func (jd *jobDao) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr) {
+	delJobCounter := 0
+	if len(jobs.list) == 0 {
+		err := rest_errors.NewNotFoundError("no jobs in list")
+		return 0, err
+	}
+	for _, v := range jobs.list {
+		now := date_utils.GetNowUtc()
+		modDate, err := time.Parse(date_utils.ApiDateLayout, v.ModifiedAt)
+		if err != nil {
+			continue
+		}
+		if (v.Status == JobStatusFailed && modDate.Add(failedTime).Before(now)) || (v.Status == JobStatusFinished && modDate.Add(finishedTime).Before(now)) {
+			delJobCounter++
+			removeJob(*v)
+		}
+	}
+	return delJobCounter, nil
 }

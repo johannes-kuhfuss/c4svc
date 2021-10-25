@@ -19,6 +19,7 @@ var (
 	deleteJobFunction    func(jobId string) rest_errors.RestErr
 	getNextJobFunction   func() (*domain.Job, rest_errors.RestErr)
 	changeStatusFunction func(jobId string, newStatus string) rest_errors.RestErr
+	cleanJobsFunction    func(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr)
 )
 
 type jobsDaoMock struct{}
@@ -45,6 +46,10 @@ func (m *jobsDaoMock) GetNext() (*domain.Job, rest_errors.RestErr) {
 
 func (m *jobsDaoMock) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
 	return changeStatusFunction(jobId, newStatus)
+}
+
+func (m *jobsDaoMock) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr) {
+	return cleanJobsFunction(finishedTime, failedTime)
 }
 
 func TestGetJobNotFound(t *testing.T) {

@@ -18,6 +18,7 @@ type jobCleanupServiceInterface interface {
 
 func (jc *jobCleanupService) Cleanup() {
 	for !config.ShutDown {
-		time.Sleep(time.Hour * 1)
+		time.Sleep(config.CleanupWaitTime)
+
 	}
 }
