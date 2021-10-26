@@ -3,6 +3,7 @@ module github.com/johannes-kuhfuss/c4
 go 1.17
 
 require (
+	github.com/Avalanche-io/c4 v0.7.0
 	github.com/gin-contrib/zap v0.0.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/segmentio/ksuid v1.0.4
@@ -12,7 +13,7 @@ require (
 require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
+	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
 )
 
 require (
