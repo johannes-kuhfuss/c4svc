@@ -1,3 +1,5 @@
+github.com/Avalanche-io/c4 v0.7.0 h1:q1+QFR8KVJGPkZZhcZHmqjWPQSBMEiKo6k61Atw0miI=
+github.com/Avalanche-io/c4 v0.7.0/go.mod h1:NKmOoDq2g/auYP8t0S99LWQkP0gDUuIB8vmajMJw358=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
