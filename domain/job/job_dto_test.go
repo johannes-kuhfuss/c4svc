@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/johannes-kuhfuss/c4/utils/date_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
 	"github.com/stretchr/testify/assert"
 )
 

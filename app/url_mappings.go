@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/johannes-kuhfuss/c4/controllers/job"
-	"github.com/johannes-kuhfuss/c4/controllers/ping"
-	"github.com/johannes-kuhfuss/c4/utils/logger"
+	"github.com/johannes-kuhfuss/c4svc/controllers/job"
+	"github.com/johannes-kuhfuss/c4svc/controllers/ping"
+	"github.com/johannes-kuhfuss/c4svc/utils/logger"
 )
 
 func mapUrls() {

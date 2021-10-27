@@ -6,8 +6,8 @@ import (
 	"os"
 
 	c4gen "github.com/Avalanche-io/c4/id"
-	"github.com/johannes-kuhfuss/c4/utils/logger"
-	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
 )
 
 var (

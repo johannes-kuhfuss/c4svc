@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johannes-kuhfuss/c4/utils/logger"
+	"github.com/johannes-kuhfuss/c4svc/utils/logger"
 )
 
 const (

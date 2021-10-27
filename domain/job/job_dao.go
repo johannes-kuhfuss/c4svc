@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/johannes-kuhfuss/c4/utils/date_utils"
-	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
+	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
 )
 
 var (

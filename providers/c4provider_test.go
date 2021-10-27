@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	testFile = "D:\\Data\\code\\github.com\\johannes-kuhfuss\\c4srv\\media\\TestBild.tif"
+	testFile = "D:\\Data\\code\\github.com\\johannes-kuhfuss\\c4svc\\media\\TestBild.tif"
 )
 
 func TestProcessFileOpenError(t *testing.T) {

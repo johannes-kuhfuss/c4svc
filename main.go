@@ -1,6 +1,6 @@
 package main
 
-import "github.com/johannes-kuhfuss/c4/app"
+import "github.com/johannes-kuhfuss/c4svc/app"
 
 func main() {
 	app.StartApp()

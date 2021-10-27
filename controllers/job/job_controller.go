@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	domain "github.com/johannes-kuhfuss/c4/domain/job"
-	"github.com/johannes-kuhfuss/c4/services"
-	"github.com/johannes-kuhfuss/c4/utils/logger"
-	rest_errors "github.com/johannes-kuhfuss/c4/utils/rest_errors_utils"
+	domain "github.com/johannes-kuhfuss/c4svc/domain/job"
+	"github.com/johannes-kuhfuss/c4svc/services"
+	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
 	"github.com/segmentio/ksuid"
 )
 
