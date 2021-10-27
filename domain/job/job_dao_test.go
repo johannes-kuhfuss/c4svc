@@ -285,5 +285,6 @@ func TestSetC4IdNoError(t *testing.T) {
 	err := JobDao.SetC4Id(job1.Id, "new C4 Id")
 	assert.Nil(t, err)
 	testJob, err := JobDao.Get(job1.Id)
+	assert.Nil(t, err)
 	assert.EqualValues(t, "new C4 Id", testJob.FileC4Id)
 }
