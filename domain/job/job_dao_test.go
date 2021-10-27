@@ -261,3 +261,29 @@ func TestCleanJobsNoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, 1, numJobs)
 }
+
+func TestSetC4IdNoJobFound(t *testing.T) {
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbdO"
+	err := JobDao.SetC4Id(id, "C4id")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v does not exist", id), err.Message())
+}
+
+func TestSetC4IdInvalidC4Id(t *testing.T) {
+	addJob(job1)
+	defer removeJob(job1)
+	err := JobDao.SetC4Id(job1.Id, "")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "invalid C4 Id", err.Message())
+}
+
+func TestSetC4IdNoError(t *testing.T) {
+	addJob(job1)
+	defer removeJob(job1)
+	err := JobDao.SetC4Id(job1.Id, "new C4 Id")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job1.Id)
+	assert.EqualValues(t, "new C4 Id", testJob.FileC4Id)
+}

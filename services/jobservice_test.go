@@ -20,6 +20,7 @@ var (
 	getNextJobFunction   func() (*domain.Job, rest_errors.RestErr)
 	changeStatusFunction func(jobId string, newStatus string) rest_errors.RestErr
 	cleanJobsFunction    func(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr)
+	setC4IdFunction      func(jobId string, c4Id string) rest_errors.RestErr
 )
 
 type jobsDaoMock struct{}
@@ -50,6 +51,10 @@ func (m *jobsDaoMock) ChangeStatus(jobId string, newStatus string) rest_errors.R
 
 func (m *jobsDaoMock) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr) {
 	return cleanJobsFunction(finishedTime, failedTime)
+}
+
+func (m *jobsDaoMock) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
+	return setC4IdFunction(jobId, c4Id)
 }
 
 func TestGetJobNotFound(t *testing.T) {
@@ -513,5 +518,22 @@ func TestChangeStatusNoError(t *testing.T) {
 		return nil
 	}
 	err := JobService.ChangeStatus("id", "valid status")
+	assert.Nil(t, err)
+}
+func TestSetC4IdError(t *testing.T) {
+	setC4IdFunction = func(jobId string, c4Id string) rest_errors.RestErr {
+		return rest_errors.NewBadRequestError("could not set C4 Id")
+	}
+	err := JobService.SetC4Id("id", "invalid Id")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "could not set C4 Id", err.Message())
+}
+
+func TestSetC4IdNoError(t *testing.T) {
+	setC4IdFunction = func(jobId string, c4Id string) rest_errors.RestErr {
+		return nil
+	}
+	err := JobService.SetC4Id("id", "valid status")
 	assert.Nil(t, err)
 }

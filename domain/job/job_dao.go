@@ -30,6 +30,7 @@ type jobDaoInterface interface {
 	GetNext() (*Job, rest_errors.RestErr)
 	ChangeStatus(string, string) rest_errors.RestErr
 	CleanJobs(time.Duration, time.Duration) (int, rest_errors.RestErr)
+	SetC4Id(string, string) rest_errors.RestErr
 }
 
 type jobDao struct{}
@@ -155,4 +156,20 @@ func (jd *jobDao) CleanJobs(finishedTime time.Duration, failedTime time.Duration
 		}
 	}
 	return delJobCounter, nil
+}
+
+func (jd *jobDao) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
+	getJob, err := getJob(jobId)
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(c4Id) == "" {
+		return rest_errors.NewBadRequestError("invalid C4 Id")
+	}
+	getJob.FileC4Id = c4Id
+	_, saveErr := JobDao.Save(*getJob, true)
+	if saveErr != nil {
+		return saveErr
+	}
+	return nil
 }
