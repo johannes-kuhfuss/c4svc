@@ -167,6 +167,7 @@ func (jd *jobDao) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
 		return rest_errors.NewBadRequestError("invalid C4 Id")
 	}
 	getJob.FileC4Id = c4Id
+	getJob.ModifiedAt = date_utils.GetNowUtcString()
 	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
