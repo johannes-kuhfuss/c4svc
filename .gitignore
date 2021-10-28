@@ -16,3 +16,6 @@
 
 # Remove notes
 Notes.txt
+
+# remove vscode internals
+.vscode
