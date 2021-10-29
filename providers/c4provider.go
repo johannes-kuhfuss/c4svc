@@ -20,12 +20,10 @@ var (
 type c4ProviderService struct{}
 
 type c4ProviderInterface interface {
-	ProcessFile(string) (*string, rest_errors.RestErr)
+	ProcessFile(string, bool) (*string, rest_errors.RestErr)
 }
 
-func (c4p *c4ProviderService) ProcessFile(srcUrl string) (*string, rest_errors.RestErr) {
-	rename := false
-
+func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, rest_errors.RestErr) {
 	if strings.TrimSpace(config.StorageAccountName) == "" || strings.TrimSpace(config.StorageAccountKey) == "" {
 		logger.Error("Cannot access storage account", nil)
 		return nil, rest_errors.NewInternalServerError("Cannot access storage account", nil)

@@ -24,7 +24,8 @@ func (jp *jobProcService) Process() {
 		curJob, err := JobService.GetNext()
 		if err == nil {
 			logger.Info(fmt.Sprintf("Found job with Id %v to process", curJob.Id))
-			c4Id, err := providers.C4Provider.ProcessFile(curJob.SrcUrl)
+			rename := curJob.Type == "CreateAndRename"
+			c4Id, err := providers.C4Provider.ProcessFile(curJob.SrcUrl, rename)
 			if err != nil {
 				logger.Error("could process file", err)
 				err = JobService.ChangeStatus(curJob.Id, "Failed")
