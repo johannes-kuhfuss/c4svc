@@ -1,11 +1,14 @@
 package providers
 
 import (
-	"bufio"
-	"fmt"
-	"os"
+	"context"
+	"net/url"
+	"path/filepath"
+	"strings"
 
 	c4gen "github.com/Avalanche-io/c4/id"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/johannes-kuhfuss/c4svc/config"
 	"github.com/johannes-kuhfuss/c4svc/utils/logger"
 	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
 )
@@ -21,18 +24,61 @@ type c4ProviderInterface interface {
 }
 
 func (c4p *c4ProviderService) ProcessFile(srcUrl string) (*string, rest_errors.RestErr) {
-	file, openErr := os.Open(srcUrl)
-	if openErr != nil {
-		logger.Error("Source file not found or could not be read", openErr)
-		return nil, rest_errors.NewNotFoundError("Source file not found or could not be read")
+	rename := false
+
+	if strings.TrimSpace(config.StorageAccountName) == "" || strings.TrimSpace(config.StorageAccountKey) == "" {
+		logger.Error("Cannot access storage account", nil)
+		return nil, rest_errors.NewInternalServerError("Cannot access storage account", nil)
 	}
-	defer file.Close()
-	fileReader := bufio.NewReader(file)
-	_ = fileReader
-	id := c4gen.Identify(fileReader)
-	if id == nil {
-		logger.Error(fmt.Sprintf("Could not generate C4 Id for %v", srcUrl), nil)
-		return nil, rest_errors.NewInternalServerError("could not generate C4 Id", nil)
+	url, err := url.Parse(srcUrl)
+	if err != nil {
+		logger.Error("Cannot parse source URL", nil)
+		return nil, rest_errors.NewBadRequestError("Cannot parse source URL")
+	}
+	blobUrl := url.Scheme + "://" + url.Host + "/"
+	containerName := strings.TrimLeft(filepath.Dir(url.Path), "\\")
+	fileName := filepath.Base(url.Path)
+	fileExt := filepath.Ext(url.Path)
+	cred, err := azblob.NewSharedKeyCredential(config.StorageAccountName, config.StorageAccountKey)
+	if err != nil {
+		logger.Error("Cannot access storage account", err)
+		return nil, rest_errors.NewInternalServerError("Cannot access storage account", err)
+	}
+	serviceClient, err := azblob.NewServiceClient(blobUrl, cred, nil)
+	if err != nil {
+		logger.Error("Cannot access storage account", err)
+		return nil, rest_errors.NewInternalServerError("Cannot access storage account", err)
+	}
+	ctx := context.Background()
+	container := serviceClient.NewContainerClient(containerName)
+	blockBlob := container.NewBlobClient(fileName)
+	get, err := blockBlob.Download(ctx, nil)
+	if err != nil {
+		logger.Error("Cannot access file on storage account", err)
+		return nil, rest_errors.NewInternalServerError("Cannot access file on storage account", err)
+	}
+	reader := get.Body(azblob.RetryReaderOptions{})
+	id := c4gen.Identify(reader)
+	if rename {
+		lease, err := blockBlob.NewBlobLeaseClient(nil)
+		if err != nil {
+			logger.Error("Cannot get lease on file", err)
+			return nil, rest_errors.NewInternalServerError("Cannot get lease on file", err)
+		}
+		lease.AcquireLease(ctx, &azblob.AcquireLeaseBlobOptions{})
+		defer lease.BreakLease(ctx, nil)
+		newFileName := id.String() + fileExt
+		newBlockBlob := container.NewBlobClient(newFileName)
+		_, err = newBlockBlob.StartCopyFromURL(ctx, blockBlob.URL(), nil)
+		if err != nil {
+			logger.Error("Renaming of file failed", err)
+			return nil, rest_errors.NewInternalServerError("Renaming of file failed", err)
+		}
+		_, err = blockBlob.Delete(ctx, nil)
+		if err != nil {
+			logger.Error("Deleting of source file failed", err)
+			return nil, rest_errors.NewInternalServerError("Deleting of source file failed", err)
+		}
 	}
 	c4string := id.String()
 	return &c4string, nil
