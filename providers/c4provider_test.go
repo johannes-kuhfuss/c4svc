@@ -26,9 +26,10 @@ func initConfig() {
 }
 
 func TestProcessFileNoAccessCred(t *testing.T) {
-	c4Id, err := C4Provider.ProcessFile("", false)
+	c4Id, dstUrl, err := C4Provider.ProcessFile("", false)
 	assert.NotNil(t, err)
 	assert.Nil(t, c4Id)
+	assert.Nil(t, dstUrl)
 	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
 	assert.EqualValues(t, "No storage account access credentials", err.Message())
 }
@@ -36,8 +37,9 @@ func TestProcessFileNoAccessCred(t *testing.T) {
 func TestProcessFileEmptyUrl(t *testing.T) {
 	config.StorageAccountName = "dummy"
 	config.StorageAccountKey = "dummy"
-	c4Id, err := C4Provider.ProcessFile("", false)
+	c4Id, dstUrl, err := C4Provider.ProcessFile("", false)
 	assert.Nil(t, c4Id)
+	assert.Nil(t, dstUrl)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
 	assert.EqualValues(t, "Cannot parse source URL", err.Message())
@@ -47,8 +49,9 @@ func TestProcessFileUrlParseError(t *testing.T) {
 	config.StorageAccountName = "dummy"
 	config.StorageAccountKey = "dummy"
 	dummyUrl := "abcdefg"
-	c4Id, err := C4Provider.ProcessFile(dummyUrl, false)
+	c4Id, dstUrl, err := C4Provider.ProcessFile(dummyUrl, false)
 	assert.Nil(t, c4Id)
+	assert.Nil(t, dstUrl)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
 	assert.EqualValues(t, "Cannot parse source URL", err.Message())
@@ -57,8 +60,9 @@ func TestProcessFileUrlParseError(t *testing.T) {
 func TestProcessFileWrongCredentials(t *testing.T) {
 	config.StorageAccountName = "dummy"
 	config.StorageAccountKey = "dummy"
-	c4Id, err := C4Provider.ProcessFile(testUrlGood, false)
+	c4Id, dstUrl, err := C4Provider.ProcessFile(testUrlGood, false)
 	assert.Nil(t, c4Id)
+	assert.Nil(t, dstUrl)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
 	assert.EqualValues(t, "Cannot access storage account - wrong credentials", err.Message())
@@ -66,17 +70,31 @@ func TestProcessFileWrongCredentials(t *testing.T) {
 
 func TestProcessFileFileNotFoundError(t *testing.T) {
 	initConfig()
-	c4Id, err := C4Provider.ProcessFile(testUrlBad, false)
+	c4Id, dstUrl, err := C4Provider.ProcessFile(testUrlBad, false)
 	assert.Nil(t, c4Id)
+	assert.Nil(t, dstUrl)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
 	assert.EqualValues(t, "Cannot access file on storage account", err.Message())
 }
 
-func TestProcessFileNoError(t *testing.T) {
+func TestProcessFileNoErrorNoRename(t *testing.T) {
 	initConfig()
-	c4Id, err := C4Provider.ProcessFile(testUrlGood, false)
+	c4Id, dstUrl, err := C4Provider.ProcessFile(testUrlGood, false)
 	assert.NotNil(t, c4Id)
+	assert.Nil(t, dstUrl)
 	assert.Nil(t, err)
 	assert.EqualValues(t, "c42FTpMRKrEEL6sgwRVRfxbzYDsYZe4VgsNVC7D6Jkqz8ABjsSAybKLYwPLGSJexGkJ9qt3aR8sMAjZ8fhKd7GfQsB", *c4Id)
 }
+
+/*
+func TestProcessFileNoErrorRename(t *testing.T) {
+	initConfig()
+	c4Id, dstUrl, err := C4Provider.ProcessFile(testUrlGood, true)
+	assert.NotNil(t, c4Id)
+	assert.NotNil(t, dstUrl)
+	assert.Nil(t, err)
+	assert.EqualValues(t, "c42FTpMRKrEEL6sgwRVRfxbzYDsYZe4VgsNVC7D6Jkqz8ABjsSAybKLYwPLGSJexGkJ9qt3aR8sMAjZ8fhKd7GfQsB", *c4Id)
+	assert.EqualValues(t, "https://mediajku.blob.core.windows.net/media/c42FTpMRKrEEL6sgwRVRfxbzYDsYZe4VgsNVC7D6Jkqz8ABjsSAybKLYwPLGSJexGkJ9qt3aR8sMAjZ8fhKd7GfQsB.tif", *dstUrl)
+}
+*/

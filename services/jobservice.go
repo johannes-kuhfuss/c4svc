@@ -24,6 +24,7 @@ type jobServiceInterface interface {
 	GetNext() (*domain.Job, rest_errors.RestErr)
 	ChangeStatus(string, string) rest_errors.RestErr
 	SetC4Id(string, string) rest_errors.RestErr
+	SetDstUrl(string, string) rest_errors.RestErr
 }
 
 func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
@@ -39,11 +40,7 @@ func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestE
 	}
 	request.CreatedAt = date_utils.GetNowUtcString()
 	request.SrcUrl = inputJob.SrcUrl
-	if inputJob.Type == domain.JobTypeCreateAndRename {
-		request.DstUrl = inputJob.DstUrl
-	} else {
-		request.DstUrl = ""
-	}
+	request.DstUrl = ""
 	request.Type = inputJob.Type
 	request.Status = domain.JobStatusCreated
 	savedJob, err := domain.JobDao.Save(request, false)
@@ -144,6 +141,14 @@ func (j *jobService) ChangeStatus(jobId string, newStatus string) rest_errors.Re
 
 func (j *jobService) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
 	err := domain.JobDao.SetC4Id(jobId, c4Id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (j *jobService) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
+	err := domain.JobDao.SetDstUrl(jobId, dstUrl)
 	if err != nil {
 		return err
 	}

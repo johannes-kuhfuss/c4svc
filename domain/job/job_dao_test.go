@@ -288,3 +288,30 @@ func TestSetC4IdNoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, "new C4 Id", testJob.FileC4Id)
 }
+
+func TestSetDstUrlNoJobFound(t *testing.T) {
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbdO"
+	err := JobDao.SetDstUrl(id, "new url")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v does not exist", id), err.Message())
+}
+
+func TestSetDstUrlInvalidDstUrl(t *testing.T) {
+	addJob(job1)
+	defer removeJob(job1)
+	err := JobDao.SetDstUrl(job1.Id, "")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "invalid destination URL", err.Message())
+}
+
+func TestSetDstUrlNoError(t *testing.T) {
+	addJob(job1)
+	defer removeJob(job1)
+	err := JobDao.SetDstUrl(job1.Id, "new destination URL")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job1.Id)
+	assert.Nil(t, err)
+	assert.EqualValues(t, "new destination URL", testJob.DstUrl)
+}

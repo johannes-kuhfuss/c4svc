@@ -34,6 +34,7 @@ type Job struct {
 	Type       JobType   `json:"type"`
 	Status     JobStatus `json:"status"`
 	FileC4Id   string    `json:"file_c4_id"`
+	ErrorMsg   string    `json:"error_msg"`
 }
 
 func (j *Job) Validate() rest_errors.RestErr {
@@ -42,9 +43,6 @@ func (j *Job) Validate() rest_errors.RestErr {
 	}
 	if strings.TrimSpace(j.SrcUrl) == "" {
 		return rest_errors.NewBadRequestError("invalid source Url")
-	}
-	if (j.Type == JobTypeCreateAndRename) && (strings.TrimSpace(j.DstUrl) == "") {
-		return rest_errors.NewBadRequestError("invalid destination Url")
 	}
 	return nil
 }

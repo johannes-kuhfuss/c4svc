@@ -21,6 +21,7 @@ var (
 	changeStatusFunction func(jobId string, newStatus string) rest_errors.RestErr
 	cleanJobsFunction    func(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr)
 	setC4IdFunction      func(jobId string, c4Id string) rest_errors.RestErr
+	setDstUrlFunction    func(jobId string, dstUrl string) rest_errors.RestErr
 )
 
 type jobsDaoMock struct{}
@@ -55,6 +56,10 @@ func (m *jobsDaoMock) CleanJobs(finishedTime time.Duration, failedTime time.Dura
 
 func (m *jobsDaoMock) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
 	return setC4IdFunction(jobId, c4Id)
+}
+
+func (m *jobsDaoMock) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
+	return setDstUrlFunction(jobId, dstUrl)
 }
 
 func TestGetJobNotFound(t *testing.T) {
@@ -114,19 +119,6 @@ func TestCreateJobInvalidSrcUrl(t *testing.T) {
 	assert.EqualValues(t, "invalid source Url", err.Message())
 }
 
-func TestCreateJobInvalidDstUrl(t *testing.T) {
-	newJob := domain.Job{
-		Type:   "CreateAndRename",
-		SrcUrl: "http://server/path/file.ext",
-		DstUrl: "",
-	}
-	createJob, err := JobService.Create(newJob)
-	assert.Nil(t, createJob)
-	assert.NotNil(t, err)
-	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
-	assert.EqualValues(t, "invalid destination Url", err.Message())
-}
-
 func TestCreateJobNameGivenNoDstUrlNoError(t *testing.T) {
 	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
 		return &newJob, nil
@@ -163,7 +155,7 @@ func TestCreateJobNoNameGivenWithDstUrlNoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, createJob.Name, "Job @ ")
 	assert.EqualValues(t, newJob.Type, createJob.Type)
-	assert.EqualValues(t, newJob.DstUrl, createJob.DstUrl)
+	assert.EqualValues(t, "", createJob.DstUrl)
 }
 
 func TestCreateJobSaveError(t *testing.T) {
@@ -480,7 +472,7 @@ func TestGetNextNoJob(t *testing.T) {
 	assert.EqualValues(t, "no jobs in list", err.Message())
 }
 
-func TestGetNextNoErro(t *testing.T) {
+func TestGetNextNoError(t *testing.T) {
 	getNextJobFunction = func() (*domain.Job, rest_errors.RestErr) {
 		return &domain.Job{
 			Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
@@ -535,5 +527,23 @@ func TestSetC4IdNoError(t *testing.T) {
 		return nil
 	}
 	err := JobService.SetC4Id("id", "valid status")
+	assert.Nil(t, err)
+}
+
+func TestSetDstUrlIdError(t *testing.T) {
+	setDstUrlFunction = func(jobId string, dstUrl string) rest_errors.RestErr {
+		return rest_errors.NewBadRequestError("could not set destination URL")
+	}
+	err := JobService.SetDstUrl("id", "new Url")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+	assert.EqualValues(t, "could not set destination URL", err.Message())
+}
+
+func TestSetDstUrlNoError(t *testing.T) {
+	setDstUrlFunction = func(jobId string, dstUrl string) rest_errors.RestErr {
+		return nil
+	}
+	err := JobService.SetDstUrl("id", "new Url")
 	assert.Nil(t, err)
 }

@@ -25,7 +25,7 @@ func (jp *jobProcService) Process() {
 		if err == nil {
 			logger.Info(fmt.Sprintf("Found job with Id %v to process", curJob.Id))
 			rename := curJob.Type == "CreateAndRename"
-			c4Id, err := providers.C4Provider.ProcessFile(curJob.SrcUrl, rename)
+			c4Id, dstUrl, err := providers.C4Provider.ProcessFile(curJob.SrcUrl, rename)
 			if err != nil {
 				logger.Error("could process file", err)
 				err = JobService.ChangeStatus(curJob.Id, "Failed")
@@ -36,6 +36,12 @@ func (jp *jobProcService) Process() {
 				err = JobService.SetC4Id(curJob.Id, *c4Id)
 				if err != nil {
 					logger.Error("could not set C4 Id", err)
+				}
+				if rename {
+					err = JobService.SetDstUrl(curJob.Id, *dstUrl)
+					if err != nil {
+						logger.Error("could not set destination URL", err)
+					}
 				}
 				err = JobService.ChangeStatus(curJob.Id, "Finished")
 				if err != nil {

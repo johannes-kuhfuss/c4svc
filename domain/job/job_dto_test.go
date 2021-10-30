@@ -30,7 +30,6 @@ func TestCreateC4JobAsJson(t *testing.T) {
 		ModifiedAt: date_utils.GetNowUtcString(),
 		ModifiedBy: "user2",
 		SrcUrl:     "https://server/path1/file1.ext",
-		DstUrl:     "https://server/path2/file2.ext",
 		Type:       JobTypeCreate,
 		Status:     JobStatusCreated,
 		FileC4Id:   "abcdefg",
@@ -64,17 +63,6 @@ func TestValidateNoSource(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.EqualValues(t, err.StatusCode(), http.StatusBadRequest)
 	assert.EqualValues(t, err.Message(), "invalid source Url")
-}
-
-func TestValidateRenameNoDestination(t *testing.T) {
-	job1 := Job{
-		Type:   "CreateAndRename",
-		SrcUrl: "https://server/path1/file1.ext",
-	}
-	err := job1.Validate()
-	assert.NotNil(t, err)
-	assert.EqualValues(t, err.StatusCode(), http.StatusBadRequest)
-	assert.EqualValues(t, err.Message(), "invalid destination Url")
 }
 
 func TestValidateNoError(t *testing.T) {
