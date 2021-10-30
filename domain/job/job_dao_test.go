@@ -315,3 +315,21 @@ func TestSetDstUrlNoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, "new destination URL", testJob.DstUrl)
 }
+
+func TestSetErrMsgNoJobFound(t *testing.T) {
+	id := "1zXgBZNnBG1msmF1ARQK9ZphbdO"
+	err := JobDao.SetErrMsg(id, "new error message")
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, fmt.Sprintf("job with Id %v does not exist", id), err.Message())
+}
+
+func TestSetErrMsgNoError(t *testing.T) {
+	addJob(job1)
+	defer removeJob(job1)
+	err := JobDao.SetErrMsg(job1.Id, "new error message")
+	assert.Nil(t, err)
+	testJob, err := JobDao.Get(job1.Id)
+	assert.Nil(t, err)
+	assert.EqualValues(t, "new error message", testJob.ErrorMsg)
+}

@@ -32,6 +32,7 @@ type jobDaoInterface interface {
 	CleanJobs(time.Duration, time.Duration) (int, rest_errors.RestErr)
 	SetC4Id(string, string) rest_errors.RestErr
 	SetDstUrl(string, string) rest_errors.RestErr
+	SetErrMsg(string, string) rest_errors.RestErr
 }
 
 type jobDao struct{}
@@ -185,6 +186,20 @@ func (jd *jobDao) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
 		return rest_errors.NewBadRequestError("invalid destination URL")
 	}
 	getJob.DstUrl = dstUrl
+	getJob.ModifiedAt = date_utils.GetNowUtcString()
+	_, saveErr := JobDao.Save(*getJob, true)
+	if saveErr != nil {
+		return saveErr
+	}
+	return nil
+}
+
+func (jd *jobDao) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
+	getJob, err := getJob(jobId)
+	if err != nil {
+		return err
+	}
+	getJob.ErrorMsg = errMsg
 	getJob.ModifiedAt = date_utils.GetNowUtcString()
 	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {

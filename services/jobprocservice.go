@@ -28,6 +28,10 @@ func (jp *jobProcService) Process() {
 			c4Id, dstUrl, err := providers.C4Provider.ProcessFile(curJob.SrcUrl, rename)
 			if err != nil {
 				logger.Error("could process file", err)
+				err = JobService.SetErrMsg(curJob.Id, fmt.Sprintf("Could not process file: %s", err.Message()))
+				if err != nil {
+					logger.Error("could not set error message", err)
+				}
 				err = JobService.ChangeStatus(curJob.Id, "Failed")
 				if err != nil {
 					logger.Error("could not change job status", err)
