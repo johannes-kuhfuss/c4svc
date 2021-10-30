@@ -26,6 +26,7 @@ type jobServiceInterface interface {
 	SetC4Id(string, string) rest_errors.RestErr
 	SetDstUrl(string, string) rest_errors.RestErr
 	SetErrMsg(string, string) rest_errors.RestErr
+	GetAll() (*domain.Jobs, rest_errors.RestErr)
 }
 
 func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
@@ -162,4 +163,12 @@ func (j *jobService) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr 
 		return err
 	}
 	return nil
+}
+
+func (j *jobService) GetAll() (*domain.Jobs, rest_errors.RestErr) {
+	jobs, err := domain.JobDao.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return jobs, nil
 }

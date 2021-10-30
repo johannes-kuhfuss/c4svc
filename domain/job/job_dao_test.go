@@ -333,3 +333,24 @@ func TestSetErrMsgNoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, "new error message", testJob.ErrorMsg)
 }
+
+func TestGetAllNoJobsError(t *testing.T) {
+	jobs, err := JobDao.GetAll()
+	assert.Nil(t, jobs)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, "no jobs in list", err.Message())
+}
+
+func TestGetAllNoError(t *testing.T) {
+	addJob(job1)
+	addJob(job2)
+	addJob(job3)
+	defer removeJob(job1)
+	defer removeJob(job2)
+	defer removeJob(job3)
+	jobs, err := JobDao.GetAll()
+	assert.NotNil(t, jobs)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 3, len(*jobs))
+}

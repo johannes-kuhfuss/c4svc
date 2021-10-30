@@ -33,6 +33,7 @@ type jobDaoInterface interface {
 	SetC4Id(string, string) rest_errors.RestErr
 	SetDstUrl(string, string) rest_errors.RestErr
 	SetErrMsg(string, string) rest_errors.RestErr
+	GetAll() (*Jobs, rest_errors.RestErr)
 }
 
 type jobDao struct{}
@@ -206,4 +207,17 @@ func (jd *jobDao) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
 		return saveErr
 	}
 	return nil
+}
+
+func (jd *jobDao) GetAll() (*Jobs, rest_errors.RestErr) {
+	if len(jobs.list) == 0 {
+		return nil, rest_errors.NewNotFoundError("no jobs in list")
+	}
+	var returnJobs Jobs
+	jobs.mu.Lock()
+	defer jobs.mu.Unlock()
+	for job := range jobs.list {
+		returnJobs = append(returnJobs, *jobs.list[job])
+	}
+	return &returnJobs, nil
 }

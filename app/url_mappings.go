@@ -15,6 +15,7 @@ func mapUrls() {
 	router.DELETE("/job/:job_id", job.Delete)
 	router.PUT("/job/:job_id", job.Update)
 	router.PATCH("/job/:job_id", job.UpdatePart)
+	router.GET("/jobs/", job.GetAll)
 
 	logger.Debug("Done mapping URLs")
 }

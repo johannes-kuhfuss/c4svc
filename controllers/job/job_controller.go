@@ -126,3 +126,15 @@ func UpdatePart(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 	logger.Debug("Done processing job partial update request")
 }
+
+func GetAll(c *gin.Context) {
+	logger.Debug("Processing job get all request")
+	jobs, err := services.JobService.GetAll()
+	if err != nil {
+		logger.Error("Service error while getting all jobs", err)
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusOK, jobs)
+	logger.Debug("Done processing job get request")
+}

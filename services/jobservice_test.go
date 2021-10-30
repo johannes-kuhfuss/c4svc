@@ -23,6 +23,7 @@ var (
 	setC4IdFunction      func(jobId string, c4Id string) rest_errors.RestErr
 	setDstUrlFunction    func(jobId string, dstUrl string) rest_errors.RestErr
 	setErrMsgFunction    func(jobId string, errMsg string) rest_errors.RestErr
+	getAllFunction       func() (*domain.Jobs, rest_errors.RestErr)
 )
 
 type jobsDaoMock struct{}
@@ -65,6 +66,10 @@ func (m *jobsDaoMock) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr
 
 func (m *jobsDaoMock) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
 	return setErrMsgFunction(jobId, errMsg)
+}
+
+func (m *jobsDaoMock) GetAll() (*domain.Jobs, rest_errors.RestErr) {
+	return getAllFunction()
 }
 
 func TestGetJobNotFound(t *testing.T) {
@@ -569,4 +574,40 @@ func TestSetErrMsgNoError(t *testing.T) {
 	}
 	err := JobService.SetErrMsg("id", "new error message")
 	assert.Nil(t, err)
+}
+
+func TestGetAllNoJobsError(t *testing.T) {
+	getAllFunction = func() (*domain.Jobs, rest_errors.RestErr) {
+		return nil, rest_errors.NewNotFoundError("no jobs in list")
+	}
+	jobs, err := JobService.GetAll()
+	assert.Nil(t, jobs)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+	assert.EqualValues(t, "no jobs in list", err.Message())
+}
+
+func TestGetAllNoError(t *testing.T) {
+	getAllFunction = func() (*domain.Jobs, rest_errors.RestErr) {
+		newJob := domain.Job{
+			Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
+			Name:       "Job 1",
+			CreatedAt:  "2021-10-15T15:00:00Z",
+			CreatedBy:  "user A",
+			ModifiedAt: "",
+			ModifiedBy: "",
+			SrcUrl:     "http://server/path1/file1.ext",
+			DstUrl:     "http://server/path2/file2.ext",
+			Type:       "CreateAndRename",
+			Status:     "Created",
+			FileC4Id:   "abcdefg",
+		}
+		var jobList domain.Jobs
+		jobList = append(jobList, newJob)
+		return &jobList, nil
+	}
+	jobs, err := JobService.GetAll()
+	assert.NotNil(t, jobs)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 1, len(*jobs))
 }
