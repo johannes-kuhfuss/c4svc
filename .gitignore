@@ -19,3 +19,4 @@ Notes.txt
 
 # remove vscode internals
 .vscode
+.env

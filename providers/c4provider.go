@@ -25,11 +25,11 @@ type c4ProviderInterface interface {
 
 func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, rest_errors.RestErr) {
 	if strings.TrimSpace(config.StorageAccountName) == "" || strings.TrimSpace(config.StorageAccountKey) == "" {
-		logger.Error("Cannot access storage account", nil)
-		return nil, rest_errors.NewInternalServerError("Cannot access storage account", nil)
+		logger.Error("No storage account access credentials", nil)
+		return nil, rest_errors.NewInternalServerError("No storage account access credentials", nil)
 	}
 	url, err := url.Parse(srcUrl)
-	if err != nil {
+	if err != nil || srcUrl == "" {
 		logger.Error("Cannot parse source URL", nil)
 		return nil, rest_errors.NewBadRequestError("Cannot parse source URL")
 	}
@@ -37,15 +37,19 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 	containerName := strings.TrimLeft(filepath.Dir(url.Path), "\\")
 	fileName := filepath.Base(url.Path)
 	fileExt := filepath.Ext(url.Path)
+	if url.Scheme == "" || url.Host == "" || containerName == "." {
+		logger.Error("Cannot parse source URL", nil)
+		return nil, rest_errors.NewBadRequestError("Cannot parse source URL")
+	}
 	cred, err := azblob.NewSharedKeyCredential(config.StorageAccountName, config.StorageAccountKey)
 	if err != nil {
-		logger.Error("Cannot access storage account", err)
-		return nil, rest_errors.NewInternalServerError("Cannot access storage account", err)
+		logger.Error("Cannot access storage account - wrong credentials", err)
+		return nil, rest_errors.NewInternalServerError("Cannot access storage account - wrong credentials", err)
 	}
 	serviceClient, err := azblob.NewServiceClient(blobUrl, cred, nil)
 	if err != nil {
-		logger.Error("Cannot access storage account", err)
-		return nil, rest_errors.NewInternalServerError("Cannot access storage account", err)
+		logger.Error("Cannot access storage account - could not create service client", err)
+		return nil, rest_errors.NewInternalServerError("Cannot access storage account - could not create service client", err)
 	}
 	ctx := context.Background()
 	container := serviceClient.NewContainerClient(containerName)
@@ -53,7 +57,7 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 	get, err := blockBlob.Download(ctx, nil)
 	if err != nil {
 		logger.Error("Cannot access file on storage account", err)
-		return nil, rest_errors.NewInternalServerError("Cannot access file on storage account", err)
+		return nil, rest_errors.NewBadRequestError("Cannot access file on storage account")
 	}
 	reader := get.Body(azblob.RetryReaderOptions{})
 	id := c4gen.Identify(reader)
