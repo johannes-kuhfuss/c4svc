@@ -18,8 +18,10 @@ func init() {
 	logger.Debug("Initializing router")
 	gin.SetMode(config.GinMode())
 	router = gin.New()
-	router.Use(ginzap.Ginzap(logger.GetLog(), time.RFC3339, true))
-	router.Use(ginzap.RecoveryWithZap(logger.GetLog(), true))
+	log := logger.GetLog()
+	router.Use(ginzap.Ginzap(log, time.RFC3339, true))
+	router.Use(ginzap.RecoveryWithZap(log, true))
+	router.Use()
 	logger.Debug("Done initializing router")
 }
 
