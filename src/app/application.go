@@ -5,9 +5,9 @@ import (
 
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
-	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/services"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/c4svc/src/config"
+	"github.com/johannes-kuhfuss/c4svc/src/services"
+	"github.com/johannes-kuhfuss/c4svc/src/utils/logger"
 )
 
 var (

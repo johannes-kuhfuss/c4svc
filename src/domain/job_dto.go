@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	rest_errors "github.com/johannes-kuhfuss/c4svc/src/utils/rest_errors_utils"
 )
 
 type JobType string

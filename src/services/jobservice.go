@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/johannes-kuhfuss/c4svc/domain"
-	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/src/domain"
+	"github.com/johannes-kuhfuss/c4svc/src/utils/date_utils"
+	rest_errors "github.com/johannes-kuhfuss/c4svc/src/utils/rest_errors_utils"
 	"github.com/segmentio/ksuid"
 )
 

@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/c4svc/src/config"
+	"github.com/johannes-kuhfuss/c4svc/src/utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +17,7 @@ const (
 )
 
 func initConfig() {
-	err := godotenv.Load("../.env")
+	err := godotenv.Load("../../.env")
 	if err != nil {
 		logger.Error("Could not open env file", err)
 	}

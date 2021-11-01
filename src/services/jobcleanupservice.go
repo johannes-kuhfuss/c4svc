@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/domain"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/c4svc/src/config"
+	"github.com/johannes-kuhfuss/c4svc/src/domain"
+	"github.com/johannes-kuhfuss/c4svc/src/utils/logger"
 )
 
 var (

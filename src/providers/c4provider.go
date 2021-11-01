@@ -8,9 +8,9 @@ import (
 
 	c4gen "github.com/Avalanche-io/c4/id"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/src/config"
+	"github.com/johannes-kuhfuss/c4svc/src/utils/logger"
+	rest_errors "github.com/johannes-kuhfuss/c4svc/src/utils/rest_errors_utils"
 )
 
 var (

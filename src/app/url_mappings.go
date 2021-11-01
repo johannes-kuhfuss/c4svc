@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/johannes-kuhfuss/c4svc/controllers"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/c4svc/src/controllers"
+	"github.com/johannes-kuhfuss/c4svc/src/utils/logger"
 )
 
 func mapUrls() {
