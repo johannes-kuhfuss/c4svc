@@ -23,12 +23,12 @@
 ##
 FROM gcr.io/distroless/base
 
-WORKDIR /
+WORKDIR /app
 
-COPY c4svc /c4svc
+COPY c4svc /app/c4svc
 
 EXPOSE 8080
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/c4svc"]
+ENTRYPOINT ["/app/c4svc"]
