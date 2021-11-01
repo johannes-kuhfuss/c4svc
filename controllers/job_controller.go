@@ -1,4 +1,4 @@
-package job
+package controllers
 
 import (
 	"net/http"
@@ -11,6 +11,22 @@ import (
 	"github.com/segmentio/ksuid"
 )
 
+var (
+	JobController jobControllerInterface = &jobController{}
+)
+
+type jobControllerInterface interface {
+	Create(*gin.Context)
+	Get(*gin.Context)
+	Delete(*gin.Context)
+	Update(*gin.Context)
+	UpdatePart(*gin.Context)
+	GetAll(*gin.Context)
+}
+
+type jobController struct {
+}
+
 func getJobId(jobIdParam string) (string, rest_errors.RestErr) {
 	jobId, err := ksuid.Parse(jobIdParam)
 	if err != nil {
@@ -20,7 +36,7 @@ func getJobId(jobIdParam string) (string, rest_errors.RestErr) {
 	return jobId.String(), nil
 }
 
-func Create(c *gin.Context) {
+func (jc jobController) Create(c *gin.Context) {
 	logger.Debug("Processing job create request")
 	var newJob domain.Job
 	if err := c.ShouldBindJSON(&newJob); err != nil {
@@ -40,7 +56,7 @@ func Create(c *gin.Context) {
 	logger.Debug("Done processing job create request")
 }
 
-func Get(c *gin.Context) {
+func (jc jobController) Get(c *gin.Context) {
 	logger.Debug("Processing job get request")
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
@@ -57,7 +73,7 @@ func Get(c *gin.Context) {
 	logger.Debug("Done processing job get request")
 }
 
-func Delete(c *gin.Context) {
+func (jc jobController) Delete(c *gin.Context) {
 	logger.Debug("Processing job delete request")
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
@@ -89,7 +105,7 @@ func validateUpdate(c *gin.Context) (id string, job domain.Job, err rest_errors.
 	return jobId, inputJob, nil
 }
 
-func Update(c *gin.Context) {
+func (jc jobController) Update(c *gin.Context) {
 	logger.Debug("Processing job full update request")
 	partial := false
 	jobId, inputJob, err := validateUpdate(c)
@@ -108,7 +124,7 @@ func Update(c *gin.Context) {
 	logger.Debug("Done processing job full update request")
 }
 
-func UpdatePart(c *gin.Context) {
+func (jc jobController) UpdatePart(c *gin.Context) {
 	logger.Debug("Processing job partial update request")
 	partial := true
 	jobId, inputJob, err := validateUpdate(c)
@@ -127,7 +143,7 @@ func UpdatePart(c *gin.Context) {
 	logger.Debug("Done processing job partial update request")
 }
 
-func GetAll(c *gin.Context) {
+func (jc jobController) GetAll(c *gin.Context) {
 	logger.Debug("Processing job get all request")
 	jobs, err := services.JobService.GetAll()
 	if err != nil {
