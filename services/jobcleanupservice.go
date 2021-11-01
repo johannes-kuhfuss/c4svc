@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/johannes-kuhfuss/c4svc/config"
-	domain "github.com/johannes-kuhfuss/c4svc/domain/job"
+	"github.com/johannes-kuhfuss/c4svc/domain"
 	"github.com/johannes-kuhfuss/c4svc/utils/logger"
 )
 

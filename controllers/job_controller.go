@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	domain "github.com/johannes-kuhfuss/c4svc/domain/job"
+	"github.com/johannes-kuhfuss/c4svc/domain"
 	"github.com/johannes-kuhfuss/c4svc/services"
 	"github.com/johannes-kuhfuss/c4svc/utils/logger"
 	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
