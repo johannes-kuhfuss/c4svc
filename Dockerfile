@@ -32,6 +32,6 @@ RUN adduser -s /bin/false -D -H nonroot nonroot
 
 EXPOSE 8080
 
-USER nonroot:nonroot
+USER nobody:nogroup
 
 ENTRYPOINT ["/c4svc"]
