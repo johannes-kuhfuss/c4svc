@@ -27,6 +27,8 @@ FROM alpine:latest
 WORKDIR /
 
 COPY --from=build /c4svc /c4svc
+RUN addgroup nonroot
+RUN adduser -s /bin/false -D -H nonroot nonroot
 
 EXPOSE 8080
 
