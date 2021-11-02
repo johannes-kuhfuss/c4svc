@@ -3,6 +3,7 @@ package providers
 import (
 	"context"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,7 +36,7 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 		return nil, nil, rest_errors.NewBadRequestError("Cannot parse source URL")
 	}
 	blobUrl := url.Scheme + "://" + url.Host //+ "/"
-	containerName := strings.TrimLeft(filepath.Dir(url.Path), "\\")
+	containerName := strings.TrimLeft(filepath.Dir(url.Path), string(os.PathSeparator))
 	fileName := filepath.Base(url.Path)
 	fileExt := filepath.Ext(url.Path)
 	if url.Scheme == "" || url.Host == "" || containerName == "." {
