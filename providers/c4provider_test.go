@@ -17,7 +17,7 @@ const (
 )
 
 func initConfig() {
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load("../.env")
 	if err != nil {
 		logger.Error("Could not open env file", err)
 	}

@@ -34,7 +34,7 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 		logger.Error("Cannot parse source URL", nil)
 		return nil, nil, rest_errors.NewBadRequestError("Cannot parse source URL")
 	}
-	blobUrl := url.Scheme + "://" + url.Host + "/"
+	blobUrl := url.Scheme + "://" + url.Host //+ "/"
 	containerName := strings.TrimLeft(filepath.Dir(url.Path), "\\")
 	fileName := filepath.Base(url.Path)
 	fileExt := filepath.Ext(url.Path)
