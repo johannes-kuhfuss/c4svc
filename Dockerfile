@@ -3,32 +3,33 @@
 ##
 ## Build
 ##
-###FROM golang:1.17-alpine AS build
+FROM golang:1.17-alpine AS build
 
 # Setup ENV
-###ENV GOPATH=/app
-###ENV REPO_URL=github.com/johannes-kuhfuss/c4svc
-###ENV APP_PATH=${GOPATH}/src/${REPO_URL}
-###ENV WORKPATH=${APP_PATH}/src
+WORKDIR /app
 
-# Copy
-###COPY src ${WORKPATH}
-###WORKDIR ${WORKPATH}
+# Download prereqs
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+# Copy sources
+COPY . .
 
 # Build
-####RUN go build -o c4svc .
+RUN go build -o /c4svc
 
 ##
 ## Deploy
 ##
-FROM gcr.io/distroless/base
+FROM alpine:latest
 
-WORKDIR /app
+WORKDIR /
 
-COPY c4svc /app/c4svc
+COPY --from=build /c4svc /c4svc
 
 EXPOSE 8080
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/app/c4svc"]
+ENTRYPOINT ["/c4svc"]
