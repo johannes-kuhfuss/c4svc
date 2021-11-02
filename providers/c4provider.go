@@ -37,14 +37,11 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 		return nil, nil, rest_errors.NewBadRequestError("Cannot parse source URL")
 	}
 	blobUrl := url.Scheme + "://" + url.Host + "/"
-	logger.Info(fmt.Sprintf("blobUrl: %v", blobUrl))
-	logger.Info(fmt.Sprintf("Separator: %v", string(os.PathSeparator)))
+	logger.Debug(fmt.Sprintf("blobUrl: %v", blobUrl))
 	containerName := strings.TrimLeft(filepath.Dir(url.Path), string(os.PathSeparator))
-	logger.Info(fmt.Sprintf("containerName: %v", containerName))
+	logger.Debug(fmt.Sprintf("containerName: %v", containerName))
 	fileName := filepath.Base(url.Path)
-	logger.Info(fmt.Sprintf("fileName: %v", fileName))
 	fileExt := filepath.Ext(url.Path)
-	logger.Info(fmt.Sprintf("fileExt: %v", fileExt))
 	if url.Scheme == "" || url.Host == "" || containerName == "." {
 		logger.Error("Cannot parse source URL", nil)
 		return nil, nil, rest_errors.NewBadRequestError("Cannot parse source URL")
