@@ -39,7 +39,7 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 	blobUrl := url.Scheme + "://" + url.Host + "/"
 	logger.Info(fmt.Sprintf("blobUrl: %v", blobUrl))
 	logger.Info(fmt.Sprintf("Separator: %v", string(os.PathSeparator)))
-	containerName := strings.TrimLeft(filepath.Dir(url.Path), "\\")
+	containerName := strings.TrimLeft(filepath.Dir(url.Path), string(os.PathSeparator))
 	logger.Info(fmt.Sprintf("containerName: %v", containerName))
 	fileName := filepath.Base(url.Path)
 	logger.Info(fmt.Sprintf("fileName: %v", fileName))
