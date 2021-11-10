@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	testUrlGood = "https://mediajku.blob.core.windows.net/media/TestBild.tif"
-	testUrlBad  = "https://mediajku.blob.core.windows.net/media/noexist.tif"
+	testUrlGood = "https://mediajku.blob.core.windows.net/media-test/TestBild.tif"
+	testUrlBad  = "https://mediajku.blob.core.windows.net/media-test/noexist.tif"
 )
 
 func initConfig() {
