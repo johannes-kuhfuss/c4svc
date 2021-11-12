@@ -10,6 +10,7 @@ import (
 
 func setupLogsCapture() (*zap.Logger, *observer.ObservedLogs) {
 	core, logs := observer.New(zap.InfoLevel)
+
 	return zap.New(core), logs
 }
 
