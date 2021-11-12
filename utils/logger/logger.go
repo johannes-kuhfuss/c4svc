@@ -1,7 +1,9 @@
 package logger
 
 import (
+	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -15,7 +17,8 @@ const (
 )
 
 var (
-	log logger
+	log  logger
+	sink *MemorySink
 )
 
 type loggerInterface interface {
@@ -32,7 +35,18 @@ type Field struct {
 	Value interface{}
 }
 
+type MemorySink struct {
+	*bytes.Buffer
+}
+
+func (s *MemorySink) Close() error { return nil }
+func (s *MemorySink) Sync() error  { return nil }
+
 func init() {
+	initLogger(false)
+}
+
+func initLogger(test bool) {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.LevelKey = "level"
 	encoderConfig.TimeKey = "time"
@@ -41,7 +55,16 @@ func init() {
 	encoderConfig.StacktraceKey = ""
 
 	logConfig := zap.NewProductionConfig()
-	logConfig.OutputPaths = []string{getOutput()}
+	if test {
+		zap.RegisterSink("memory", func(*url.URL) (zap.Sink, error) {
+			return sink, nil
+		})
+		sink = &MemorySink{new(bytes.Buffer)}
+		logConfig.OutputPaths = []string{"memory://"}
+	} else {
+		logConfig.OutputPaths = []string{getOutput()}
+	}
+
 	logConfig.Level = zap.NewAtomicLevelAt(getLevel())
 	logConfig.Encoding = "json"
 	logConfig.EncoderConfig = encoderConfig
