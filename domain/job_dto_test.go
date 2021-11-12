@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/date"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,9 +25,9 @@ func TestCreateC4JobAsJson(t *testing.T) {
 	job1 := Job{
 		Id:         "1zXg7ubtb02J3t0muj6jXqzzM72",
 		Name:       "new C4 Job",
-		CreatedAt:  date_utils.GetNowUtcString(),
+		CreatedAt:  date.GetNowUtcString(),
 		CreatedBy:  "user1",
-		ModifiedAt: date_utils.GetNowUtcString(),
+		ModifiedAt: date.GetNowUtcString(),
 		ModifiedBy: "user2",
 		SrcUrl:     "https://server/path1/file1.ext",
 		Type:       JobTypeCreate,

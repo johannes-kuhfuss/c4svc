@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
 )
 
 type JobType string
@@ -37,12 +37,12 @@ type Job struct {
 	ErrorMsg   string    `json:"error_msg"`
 }
 
-func (j *Job) Validate() rest_errors.RestErr {
+func (j *Job) Validate() api_error.ApiErr {
 	if (j.Type != JobTypeCreate) && (j.Type != JobTypeCreateAndRename) {
-		return rest_errors.NewBadRequestError("invalid job type")
+		return api_error.NewBadRequestError("invalid job type")
 	}
 	if strings.TrimSpace(j.SrcUrl) == "" {
-		return rest_errors.NewBadRequestError("invalid source Url")
+		return api_error.NewBadRequestError("invalid source Url")
 	}
 	return nil
 }

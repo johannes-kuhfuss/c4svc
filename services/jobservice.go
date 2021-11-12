@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/johannes-kuhfuss/c4svc/domain"
-	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
+	"github.com/johannes-kuhfuss/c4svc/utils/date"
 	"github.com/segmentio/ksuid"
 )
 
@@ -17,19 +17,19 @@ var (
 type jobService struct{}
 
 type jobServiceInterface interface {
-	Create(domain.Job) (*domain.Job, rest_errors.RestErr)
-	Get(string) (*domain.Job, rest_errors.RestErr)
-	Delete(string) rest_errors.RestErr
-	Update(string, domain.Job, bool) (*domain.Job, rest_errors.RestErr)
-	GetNext() (*domain.Job, rest_errors.RestErr)
-	ChangeStatus(string, string) rest_errors.RestErr
-	SetC4Id(string, string) rest_errors.RestErr
-	SetDstUrl(string, string) rest_errors.RestErr
-	SetErrMsg(string, string) rest_errors.RestErr
-	GetAll() (*domain.Jobs, rest_errors.RestErr)
+	Create(domain.Job) (*domain.Job, api_error.ApiErr)
+	Get(string) (*domain.Job, api_error.ApiErr)
+	Delete(string) api_error.ApiErr
+	Update(string, domain.Job, bool) (*domain.Job, api_error.ApiErr)
+	GetNext() (*domain.Job, api_error.ApiErr)
+	ChangeStatus(string, string) api_error.ApiErr
+	SetC4Id(string, string) api_error.ApiErr
+	SetDstUrl(string, string) api_error.ApiErr
+	SetErrMsg(string, string) api_error.ApiErr
+	GetAll() (*domain.Jobs, api_error.ApiErr)
 }
 
-func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestErr) {
+func (j *jobService) Create(inputJob domain.Job) (*domain.Job, api_error.ApiErr) {
 	if err := inputJob.Validate(); err != nil {
 		return nil, err
 	}
@@ -38,9 +38,9 @@ func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestE
 	if strings.TrimSpace(inputJob.Name) != "" {
 		request.Name = inputJob.Name
 	} else {
-		request.Name = fmt.Sprintf("Job @ %s", date_utils.GetNowUtcString())
+		request.Name = fmt.Sprintf("Job @ %s", date.GetNowUtcString())
 	}
-	request.CreatedAt = date_utils.GetNowUtcString()
+	request.CreatedAt = date.GetNowUtcString()
 	request.SrcUrl = inputJob.SrcUrl
 	request.DstUrl = ""
 	request.Type = inputJob.Type
@@ -52,7 +52,7 @@ func (j *jobService) Create(inputJob domain.Job) (*domain.Job, rest_errors.RestE
 	return savedJob, nil
 }
 
-func (j *jobService) Get(jobId string) (*domain.Job, rest_errors.RestErr) {
+func (j *jobService) Get(jobId string) (*domain.Job, api_error.ApiErr) {
 	job, err := domain.JobDao.Get(jobId)
 	if err != nil {
 		return nil, err
@@ -60,13 +60,13 @@ func (j *jobService) Get(jobId string) (*domain.Job, rest_errors.RestErr) {
 	return job, nil
 }
 
-func (j *jobService) Delete(jobId string) rest_errors.RestErr {
+func (j *jobService) Delete(jobId string) api_error.ApiErr {
 	job, err := domain.JobDao.Get(jobId)
 	if err != nil {
 		return err
 	}
 	if job.Status == domain.JobStatusRunning {
-		statusErr := rest_errors.NewProcessingConflictError("Cannot delete job in status running")
+		statusErr := api_error.NewProcessingConflictError("Cannot delete job in status running")
 		return statusErr
 	}
 	deleteErr := domain.JobDao.Delete(jobId)
@@ -76,13 +76,13 @@ func (j *jobService) Delete(jobId string) rest_errors.RestErr {
 	return nil
 }
 
-func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*domain.Job, rest_errors.RestErr) {
+func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*domain.Job, api_error.ApiErr) {
 	job, err := domain.JobDao.Get(jobId)
 	if err != nil {
 		return nil, err
 	}
 	if job.Status != domain.JobStatusCreated {
-		statusErr := rest_errors.NewProcessingConflictError("Cannot modify job in status other than created")
+		statusErr := api_error.NewProcessingConflictError("Cannot modify job in status other than created")
 		return nil, statusErr
 	}
 	if !partial {
@@ -94,7 +94,7 @@ func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*d
 	request.Id = job.Id
 	request.CreatedAt = job.CreatedAt
 	request.CreatedBy = job.CreatedBy
-	request.ModifiedAt = date_utils.GetNowUtcString()
+	request.ModifiedAt = date.GetNowUtcString()
 	request.Status = job.Status
 	request.FileC4Id = job.FileC4Id
 	if partial && strings.TrimSpace(inputJob.Name) == "" {
@@ -125,7 +125,7 @@ func (j *jobService) Update(jobId string, inputJob domain.Job, partial bool) (*d
 	return savedJob, nil
 }
 
-func (j *jobService) GetNext() (*domain.Job, rest_errors.RestErr) {
+func (j *jobService) GetNext() (*domain.Job, api_error.ApiErr) {
 	job, err := domain.JobDao.GetNext()
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (j *jobService) GetNext() (*domain.Job, rest_errors.RestErr) {
 	return job, nil
 }
 
-func (j *jobService) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
+func (j *jobService) ChangeStatus(jobId string, newStatus string) api_error.ApiErr {
 	err := domain.JobDao.ChangeStatus(jobId, newStatus)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func (j *jobService) ChangeStatus(jobId string, newStatus string) rest_errors.Re
 	return nil
 }
 
-func (j *jobService) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
+func (j *jobService) SetC4Id(jobId string, c4Id string) api_error.ApiErr {
 	err := domain.JobDao.SetC4Id(jobId, c4Id)
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (j *jobService) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
 	return nil
 }
 
-func (j *jobService) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
+func (j *jobService) SetDstUrl(jobId string, dstUrl string) api_error.ApiErr {
 	err := domain.JobDao.SetDstUrl(jobId, dstUrl)
 	if err != nil {
 		return err
@@ -157,7 +157,7 @@ func (j *jobService) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr 
 	return nil
 }
 
-func (j *jobService) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
+func (j *jobService) SetErrMsg(jobId string, errMsg string) api_error.ApiErr {
 	err := domain.JobDao.SetErrMsg(jobId, errMsg)
 	if err != nil {
 		return err
@@ -165,7 +165,7 @@ func (j *jobService) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr 
 	return nil
 }
 
-func (j *jobService) GetAll() (*domain.Jobs, rest_errors.RestErr) {
+func (j *jobService) GetAll() (*domain.Jobs, api_error.ApiErr) {
 	jobs, err := domain.JobDao.GetAll()
 	if err != nil {
 		return nil, err

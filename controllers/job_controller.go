@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4svc/domain"
 	"github.com/johannes-kuhfuss/c4svc/services"
+	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
 	"github.com/johannes-kuhfuss/c4svc/utils/logger"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
 	"github.com/segmentio/ksuid"
 )
 
@@ -27,11 +27,11 @@ type jobControllerInterface interface {
 type jobController struct {
 }
 
-func getJobId(jobIdParam string) (string, rest_errors.RestErr) {
+func getJobId(jobIdParam string) (string, api_error.ApiErr) {
 	jobId, err := ksuid.Parse(jobIdParam)
 	if err != nil {
 		logger.Error("User Id should be a ksuid", err)
-		return "", rest_errors.NewBadRequestError("user id should be a ksuid")
+		return "", api_error.NewBadRequestError("user id should be a ksuid")
 	}
 	return jobId.String(), nil
 }
@@ -41,7 +41,7 @@ func (jc jobController) Create(c *gin.Context) {
 	var newJob domain.Job
 	if err := c.ShouldBindJSON(&newJob); err != nil {
 		logger.Error("invalid JSON body in create request", err)
-		apiErr := rest_errors.NewBadRequestError("invalid json body")
+		apiErr := api_error.NewBadRequestError("invalid json body")
 		c.JSON(apiErr.StatusCode(), apiErr)
 		return
 	}
@@ -90,11 +90,11 @@ func (jc jobController) Delete(c *gin.Context) {
 	logger.Debug("Done processing job delete request")
 }
 
-func validateUpdate(c *gin.Context) (id string, job domain.Job, err rest_errors.RestErr) {
+func validateUpdate(c *gin.Context) (id string, job domain.Job, err api_error.ApiErr) {
 	logger.Debug("Validating update")
 	var inputJob domain.Job
 	if err := c.ShouldBindJSON(&inputJob); err != nil {
-		apiErr := rest_errors.NewBadRequestError("invalid json body")
+		apiErr := api_error.NewBadRequestError("invalid json body")
 		return "", inputJob, apiErr
 	}
 	jobId, err := getJobId(c.Param("job_id"))

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
+	"github.com/johannes-kuhfuss/c4svc/utils/date"
 )
 
 var (
@@ -24,16 +24,16 @@ type jobList struct {
 }
 
 type jobDaoInterface interface {
-	Get(string) (*Job, rest_errors.RestErr)
-	Save(Job, bool) (*Job, rest_errors.RestErr)
-	Delete(string) rest_errors.RestErr
-	GetNext() (*Job, rest_errors.RestErr)
-	ChangeStatus(string, string) rest_errors.RestErr
-	CleanJobs(time.Duration, time.Duration) (int, rest_errors.RestErr)
-	SetC4Id(string, string) rest_errors.RestErr
-	SetDstUrl(string, string) rest_errors.RestErr
-	SetErrMsg(string, string) rest_errors.RestErr
-	GetAll() (*Jobs, rest_errors.RestErr)
+	Get(string) (*Job, api_error.ApiErr)
+	Save(Job, bool) (*Job, api_error.ApiErr)
+	Delete(string) api_error.ApiErr
+	GetNext() (*Job, api_error.ApiErr)
+	ChangeStatus(string, string) api_error.ApiErr
+	CleanJobs(time.Duration, time.Duration) (int, api_error.ApiErr)
+	SetC4Id(string, string) api_error.ApiErr
+	SetDstUrl(string, string) api_error.ApiErr
+	SetErrMsg(string, string) api_error.ApiErr
+	GetAll() (*Jobs, api_error.ApiErr)
 }
 
 type jobDao struct{}
@@ -50,17 +50,17 @@ func removeJob(delJob Job) {
 	delete(jobs.list, delJob.Id)
 }
 
-func getJob(jobId string) (*Job, rest_errors.RestErr) {
+func getJob(jobId string) (*Job, api_error.ApiErr) {
 	jobs.mu.Lock()
 	defer jobs.mu.Unlock()
 	if job := jobs.list[jobId]; job != nil {
 		return job, nil
 	}
-	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
+	err := api_error.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
 	return nil, err
 }
 
-func (jd *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
+func (jd *jobDao) Get(jobId string) (*Job, api_error.ApiErr) {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return nil, err
@@ -68,36 +68,36 @@ func (jd *jobDao) Get(jobId string) (*Job, rest_errors.RestErr) {
 	return getJob, nil
 }
 
-func (jd *jobDao) Save(newJob Job, overwrite bool) (*Job, rest_errors.RestErr) {
+func (jd *jobDao) Save(newJob Job, overwrite bool) (*Job, api_error.ApiErr) {
 	_, err := getJob(newJob.Id)
 	if err == nil && !overwrite {
-		err := rest_errors.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
+		err := api_error.NewBadRequestError(fmt.Sprintf("job with Id %v already exists", newJob.Id))
 		return nil, err
 	}
 	addJob(newJob)
 	return &newJob, nil
 }
 
-func (jd *jobDao) Delete(jobId string) rest_errors.RestErr {
+func (jd *jobDao) Delete(jobId string) api_error.ApiErr {
 	delJob, _ := getJob(jobId)
 	if delJob != nil {
 		removeJob(*delJob)
 		return nil
 	}
-	err := rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
+	err := api_error.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
 	return err
 }
 
-func (jd *jobDao) GetNext() (*Job, rest_errors.RestErr) {
+func (jd *jobDao) GetNext() (*Job, api_error.ApiErr) {
 	nextJobId := ""
-	nextJobDate := date_utils.GetNowUtc()
+	nextJobDate := date.GetNowUtc()
 	if len(jobs.list) == 0 {
-		err := rest_errors.NewNotFoundError("no jobs in list")
+		err := api_error.NewNotFoundError("no jobs in list")
 		return nil, err
 	}
 	for _, v := range jobs.list {
 		if v.Status == JobStatusCreated {
-			curJobDate, _ := time.Parse(date_utils.ApiDateLayout, v.CreatedAt)
+			curJobDate, _ := time.Parse(date.ApiDateLayout, v.CreatedAt)
 			if curJobDate.Before(nextJobDate) {
 				nextJobDate = curJobDate
 				nextJobId = v.Id
@@ -111,7 +111,7 @@ func (jd *jobDao) GetNext() (*Job, rest_errors.RestErr) {
 	return getJob, nil
 }
 
-func (jd *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
+func (jd *jobDao) ChangeStatus(jobId string, newStatus string) api_error.ApiErr {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return err
@@ -130,10 +130,10 @@ func (jd *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.RestE
 	case "finished":
 		getJob.Status = JobStatusFinished
 	default:
-		retErr := rest_errors.NewBadRequestError("invalid status value")
+		retErr := api_error.NewBadRequestError("invalid status value")
 		return retErr
 	}
-	getJob.ModifiedAt = date_utils.GetNowUtcString()
+	getJob.ModifiedAt = date.GetNowUtcString()
 	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
@@ -141,15 +141,15 @@ func (jd *jobDao) ChangeStatus(jobId string, newStatus string) rest_errors.RestE
 	return nil
 }
 
-func (jd *jobDao) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr) {
+func (jd *jobDao) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, api_error.ApiErr) {
 	delJobCounter := 0
 	if len(jobs.list) == 0 {
-		err := rest_errors.NewNotFoundError("no jobs in list")
+		err := api_error.NewNotFoundError("no jobs in list")
 		return 0, err
 	}
 	for _, v := range jobs.list {
-		now := date_utils.GetNowUtc()
-		modDate, err := time.Parse(date_utils.ApiDateLayout, v.ModifiedAt)
+		now := date.GetNowUtc()
+		modDate, err := time.Parse(date.ApiDateLayout, v.ModifiedAt)
 		if err != nil {
 			continue
 		}
@@ -161,16 +161,16 @@ func (jd *jobDao) CleanJobs(finishedTime time.Duration, failedTime time.Duration
 	return delJobCounter, nil
 }
 
-func (jd *jobDao) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
+func (jd *jobDao) SetC4Id(jobId string, c4Id string) api_error.ApiErr {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return err
 	}
 	if strings.TrimSpace(c4Id) == "" {
-		return rest_errors.NewBadRequestError("invalid C4 Id")
+		return api_error.NewBadRequestError("invalid C4 Id")
 	}
 	getJob.FileC4Id = c4Id
-	getJob.ModifiedAt = date_utils.GetNowUtcString()
+	getJob.ModifiedAt = date.GetNowUtcString()
 	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
@@ -178,16 +178,16 @@ func (jd *jobDao) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
 	return nil
 }
 
-func (jd *jobDao) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
+func (jd *jobDao) SetDstUrl(jobId string, dstUrl string) api_error.ApiErr {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return err
 	}
 	if strings.TrimSpace(dstUrl) == "" {
-		return rest_errors.NewBadRequestError("invalid destination URL")
+		return api_error.NewBadRequestError("invalid destination URL")
 	}
 	getJob.DstUrl = dstUrl
-	getJob.ModifiedAt = date_utils.GetNowUtcString()
+	getJob.ModifiedAt = date.GetNowUtcString()
 	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
@@ -195,13 +195,13 @@ func (jd *jobDao) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
 	return nil
 }
 
-func (jd *jobDao) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
+func (jd *jobDao) SetErrMsg(jobId string, errMsg string) api_error.ApiErr {
 	getJob, err := getJob(jobId)
 	if err != nil {
 		return err
 	}
 	getJob.ErrorMsg = errMsg
-	getJob.ModifiedAt = date_utils.GetNowUtcString()
+	getJob.ModifiedAt = date.GetNowUtcString()
 	_, saveErr := JobDao.Save(*getJob, true)
 	if saveErr != nil {
 		return saveErr
@@ -209,9 +209,9 @@ func (jd *jobDao) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
 	return nil
 }
 
-func (jd *jobDao) GetAll() (*Jobs, rest_errors.RestErr) {
+func (jd *jobDao) GetAll() (*Jobs, api_error.ApiErr) {
 	if len(jobs.list) == 0 {
-		return nil, rest_errors.NewNotFoundError("no jobs in list")
+		return nil, api_error.NewNotFoundError("no jobs in list")
 	}
 	var returnJobs Jobs
 	jobs.mu.Lock()

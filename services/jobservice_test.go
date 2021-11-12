@@ -7,23 +7,23 @@ import (
 	"time"
 
 	"github.com/johannes-kuhfuss/c4svc/domain"
-	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
+	"github.com/johannes-kuhfuss/c4svc/utils/date"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	getJobFunction       func(jobId string) (*domain.Job, rest_errors.RestErr)
-	saveJobFunction      func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr)
-	deleteJobFunction    func(jobId string) rest_errors.RestErr
-	getNextJobFunction   func() (*domain.Job, rest_errors.RestErr)
-	changeStatusFunction func(jobId string, newStatus string) rest_errors.RestErr
-	cleanJobsFunction    func(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr)
-	setC4IdFunction      func(jobId string, c4Id string) rest_errors.RestErr
-	setDstUrlFunction    func(jobId string, dstUrl string) rest_errors.RestErr
-	setErrMsgFunction    func(jobId string, errMsg string) rest_errors.RestErr
-	getAllFunction       func() (*domain.Jobs, rest_errors.RestErr)
+	getJobFunction       func(jobId string) (*domain.Job, api_error.ApiErr)
+	saveJobFunction      func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr)
+	deleteJobFunction    func(jobId string) api_error.ApiErr
+	getNextJobFunction   func() (*domain.Job, api_error.ApiErr)
+	changeStatusFunction func(jobId string, newStatus string) api_error.ApiErr
+	cleanJobsFunction    func(finishedTime time.Duration, failedTime time.Duration) (int, api_error.ApiErr)
+	setC4IdFunction      func(jobId string, c4Id string) api_error.ApiErr
+	setDstUrlFunction    func(jobId string, dstUrl string) api_error.ApiErr
+	setErrMsgFunction    func(jobId string, errMsg string) api_error.ApiErr
+	getAllFunction       func() (*domain.Jobs, api_error.ApiErr)
 )
 
 type jobsDaoMock struct{}
@@ -32,49 +32,49 @@ func init() {
 	domain.JobDao = &jobsDaoMock{}
 }
 
-func (m *jobsDaoMock) Get(jobId string) (*domain.Job, rest_errors.RestErr) {
+func (m *jobsDaoMock) Get(jobId string) (*domain.Job, api_error.ApiErr) {
 	return getJobFunction(jobId)
 }
 
-func (m *jobsDaoMock) Save(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+func (m *jobsDaoMock) Save(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
 	return saveJobFunction(newJob, overwrite)
 }
 
-func (m *jobsDaoMock) Delete(jobId string) rest_errors.RestErr {
+func (m *jobsDaoMock) Delete(jobId string) api_error.ApiErr {
 	return deleteJobFunction(jobId)
 }
 
-func (m *jobsDaoMock) GetNext() (*domain.Job, rest_errors.RestErr) {
+func (m *jobsDaoMock) GetNext() (*domain.Job, api_error.ApiErr) {
 	return getNextJobFunction()
 }
 
-func (m *jobsDaoMock) ChangeStatus(jobId string, newStatus string) rest_errors.RestErr {
+func (m *jobsDaoMock) ChangeStatus(jobId string, newStatus string) api_error.ApiErr {
 	return changeStatusFunction(jobId, newStatus)
 }
 
-func (m *jobsDaoMock) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, rest_errors.RestErr) {
+func (m *jobsDaoMock) CleanJobs(finishedTime time.Duration, failedTime time.Duration) (int, api_error.ApiErr) {
 	return cleanJobsFunction(finishedTime, failedTime)
 }
 
-func (m *jobsDaoMock) SetC4Id(jobId string, c4Id string) rest_errors.RestErr {
+func (m *jobsDaoMock) SetC4Id(jobId string, c4Id string) api_error.ApiErr {
 	return setC4IdFunction(jobId, c4Id)
 }
 
-func (m *jobsDaoMock) SetDstUrl(jobId string, dstUrl string) rest_errors.RestErr {
+func (m *jobsDaoMock) SetDstUrl(jobId string, dstUrl string) api_error.ApiErr {
 	return setDstUrlFunction(jobId, dstUrl)
 }
 
-func (m *jobsDaoMock) SetErrMsg(jobId string, errMsg string) rest_errors.RestErr {
+func (m *jobsDaoMock) SetErrMsg(jobId string, errMsg string) api_error.ApiErr {
 	return setErrMsgFunction(jobId, errMsg)
 }
 
-func (m *jobsDaoMock) GetAll() (*domain.Jobs, rest_errors.RestErr) {
+func (m *jobsDaoMock) GetAll() (*domain.Jobs, api_error.ApiErr) {
 	return getAllFunction()
 }
 
 func TestGetJobNotFound(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
-		return nil, rest_errors.NewNotFoundError("job with Id X does not exist")
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
+		return nil, api_error.NewNotFoundError("job with Id X does not exist")
 	}
 	user, err := JobService.Get("X")
 	assert.Nil(t, user)
@@ -84,7 +84,7 @@ func TestGetJobNotFound(t *testing.T) {
 }
 
 func TestGetJobNoError(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -130,7 +130,7 @@ func TestCreateJobInvalidSrcUrl(t *testing.T) {
 }
 
 func TestCreateJobNameGivenNoDstUrlNoError(t *testing.T) {
-	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
 		return &newJob, nil
 	}
 	newJob := domain.Job{
@@ -144,7 +144,7 @@ func TestCreateJobNameGivenNoDstUrlNoError(t *testing.T) {
 	_, parseErr := ksuid.Parse(createJob.Id)
 	assert.True(t, parseErr == nil)
 	assert.EqualValues(t, "myJob", createJob.Name)
-	_, parseErr = time.Parse(date_utils.ApiDateLayout, createJob.CreatedAt)
+	_, parseErr = time.Parse(date.ApiDateLayout, createJob.CreatedAt)
 	assert.True(t, parseErr == nil)
 	assert.EqualValues(t, newJob.SrcUrl, createJob.SrcUrl)
 	assert.EqualValues(t, newJob.Type, createJob.Type)
@@ -152,7 +152,7 @@ func TestCreateJobNameGivenNoDstUrlNoError(t *testing.T) {
 }
 
 func TestCreateJobNoNameGivenWithDstUrlNoError(t *testing.T) {
-	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
 		return &newJob, nil
 	}
 	newJob := domain.Job{
@@ -169,8 +169,8 @@ func TestCreateJobNoNameGivenWithDstUrlNoError(t *testing.T) {
 }
 
 func TestCreateJobSaveError(t *testing.T) {
-	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
-		return nil, rest_errors.NewBadRequestError("could not save job")
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
+		return nil, api_error.NewBadRequestError("could not save job")
 	}
 	newJob := domain.Job{
 		Type:   "Create",
@@ -185,11 +185,11 @@ func TestCreateJobSaveError(t *testing.T) {
 }
 
 func TestDeleteJobNotFound(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
-		return nil, rest_errors.NewNotFoundError("job with Id 1zXgBZNnBG1msmF1ARQK9ZphbbO does not exist")
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
+		return nil, api_error.NewNotFoundError("job with Id 1zXgBZNnBG1msmF1ARQK9ZphbbO does not exist")
 	}
-	deleteJobFunction = func(jobId string) rest_errors.RestErr {
-		return rest_errors.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
+	deleteJobFunction = func(jobId string) api_error.ApiErr {
+		return api_error.NewNotFoundError(fmt.Sprintf("job with Id %v does not exist", jobId))
 	}
 	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
 	assert.NotNil(t, deleteErr)
@@ -198,7 +198,7 @@ func TestDeleteJobNotFound(t *testing.T) {
 }
 
 func TestDeleteJobStatusError(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -213,7 +213,7 @@ func TestDeleteJobStatusError(t *testing.T) {
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
-	deleteJobFunction = func(jobId string) rest_errors.RestErr {
+	deleteJobFunction = func(jobId string) api_error.ApiErr {
 		return nil
 	}
 	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
@@ -223,7 +223,7 @@ func TestDeleteJobStatusError(t *testing.T) {
 }
 
 func TestDeleteDeleteError(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -238,8 +238,8 @@ func TestDeleteDeleteError(t *testing.T) {
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
-	deleteJobFunction = func(jobId string) rest_errors.RestErr {
-		return rest_errors.NewInternalServerError("could not delete job", nil)
+	deleteJobFunction = func(jobId string) api_error.ApiErr {
+		return api_error.NewInternalServerError("could not delete job", nil)
 	}
 	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
 	assert.NotNil(t, deleteErr)
@@ -248,7 +248,7 @@ func TestDeleteDeleteError(t *testing.T) {
 }
 
 func TestDeleteJobNoError(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -263,7 +263,7 @@ func TestDeleteJobNoError(t *testing.T) {
 			FileC4Id:   "abcdefg",
 		}, nil
 	}
-	deleteJobFunction = func(jobId string) rest_errors.RestErr {
+	deleteJobFunction = func(jobId string) api_error.ApiErr {
 		return nil
 	}
 	deleteErr := JobService.Delete("1zXgBZNnBG1msmF1ARQK9ZphbbO")
@@ -271,8 +271,8 @@ func TestDeleteJobNoError(t *testing.T) {
 }
 
 func TestUpdateJobNotFound(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
-		return nil, rest_errors.NewNotFoundError("job not found")
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
+		return nil, api_error.NewNotFoundError("job not found")
 	}
 	inputJob := domain.Job{}
 	updateJob, err := JobService.Update("", inputJob, false)
@@ -283,7 +283,7 @@ func TestUpdateJobNotFound(t *testing.T) {
 }
 
 func TestUpdateJobValidateFailure(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -319,7 +319,7 @@ func TestUpdateJobValidateFailure(t *testing.T) {
 }
 
 func TestUpdateJobStatusError(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -355,7 +355,7 @@ func TestUpdateJobStatusError(t *testing.T) {
 }
 
 func TestUpdateJobFullUpdate(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -382,7 +382,7 @@ func TestUpdateJobFullUpdate(t *testing.T) {
 		Status:     "Running",
 		FileC4Id:   "xyz",
 	}
-	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
 		return &newJob, nil
 	}
 	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
@@ -402,7 +402,7 @@ func TestUpdateJobFullUpdate(t *testing.T) {
 }
 
 func TestUpdateJobPartialUpdate(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -421,7 +421,7 @@ func TestUpdateJobPartialUpdate(t *testing.T) {
 		Name:   "",
 		DstUrl: "",
 	}
-	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
 		return &newJob, nil
 	}
 	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
@@ -441,7 +441,7 @@ func TestUpdateJobPartialUpdate(t *testing.T) {
 }
 
 func TestUpdateJobSaveError(t *testing.T) {
-	getJobFunction = func(jobId string) (*domain.Job, rest_errors.RestErr) {
+	getJobFunction = func(jobId string) (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         jobId,
 			Name:       "Job 1",
@@ -460,8 +460,8 @@ func TestUpdateJobSaveError(t *testing.T) {
 		Name:   "",
 		DstUrl: "",
 	}
-	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, rest_errors.RestErr) {
-		return nil, rest_errors.NewNotFoundError("could not save job")
+	saveJobFunction = func(newJob domain.Job, overwrite bool) (*domain.Job, api_error.ApiErr) {
+		return nil, api_error.NewNotFoundError("could not save job")
 	}
 	id := "1zXgBZNnBG1msmF1ARQK9ZphbbO"
 	updateJob, err := JobService.Update(id, inputJob, true)
@@ -472,8 +472,8 @@ func TestUpdateJobSaveError(t *testing.T) {
 }
 
 func TestGetNextNoJob(t *testing.T) {
-	getNextJobFunction = func() (*domain.Job, rest_errors.RestErr) {
-		return nil, rest_errors.NewNotFoundError("no jobs in list")
+	getNextJobFunction = func() (*domain.Job, api_error.ApiErr) {
+		return nil, api_error.NewNotFoundError("no jobs in list")
 	}
 	nextJob, err := JobService.GetNext()
 	assert.Nil(t, nextJob)
@@ -483,7 +483,7 @@ func TestGetNextNoJob(t *testing.T) {
 }
 
 func TestGetNextNoError(t *testing.T) {
-	getNextJobFunction = func() (*domain.Job, rest_errors.RestErr) {
+	getNextJobFunction = func() (*domain.Job, api_error.ApiErr) {
 		return &domain.Job{
 			Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
 			Name:       "Job 1",
@@ -506,8 +506,8 @@ func TestGetNextNoError(t *testing.T) {
 }
 
 func TestChangeStatusError(t *testing.T) {
-	changeStatusFunction = func(jobId string, newStatus string) rest_errors.RestErr {
-		return rest_errors.NewBadRequestError("invalid status value")
+	changeStatusFunction = func(jobId string, newStatus string) api_error.ApiErr {
+		return api_error.NewBadRequestError("invalid status value")
 	}
 	err := JobService.ChangeStatus("id", "invalid status")
 	assert.NotNil(t, err)
@@ -516,15 +516,15 @@ func TestChangeStatusError(t *testing.T) {
 }
 
 func TestChangeStatusNoError(t *testing.T) {
-	changeStatusFunction = func(jobId string, newStatus string) rest_errors.RestErr {
+	changeStatusFunction = func(jobId string, newStatus string) api_error.ApiErr {
 		return nil
 	}
 	err := JobService.ChangeStatus("id", "valid status")
 	assert.Nil(t, err)
 }
 func TestSetC4IdError(t *testing.T) {
-	setC4IdFunction = func(jobId string, c4Id string) rest_errors.RestErr {
-		return rest_errors.NewBadRequestError("could not set C4 Id")
+	setC4IdFunction = func(jobId string, c4Id string) api_error.ApiErr {
+		return api_error.NewBadRequestError("could not set C4 Id")
 	}
 	err := JobService.SetC4Id("id", "invalid Id")
 	assert.NotNil(t, err)
@@ -533,7 +533,7 @@ func TestSetC4IdError(t *testing.T) {
 }
 
 func TestSetC4IdNoError(t *testing.T) {
-	setC4IdFunction = func(jobId string, c4Id string) rest_errors.RestErr {
+	setC4IdFunction = func(jobId string, c4Id string) api_error.ApiErr {
 		return nil
 	}
 	err := JobService.SetC4Id("id", "valid status")
@@ -541,8 +541,8 @@ func TestSetC4IdNoError(t *testing.T) {
 }
 
 func TestSetDstUrlIdError(t *testing.T) {
-	setDstUrlFunction = func(jobId string, dstUrl string) rest_errors.RestErr {
-		return rest_errors.NewBadRequestError("could not set destination URL")
+	setDstUrlFunction = func(jobId string, dstUrl string) api_error.ApiErr {
+		return api_error.NewBadRequestError("could not set destination URL")
 	}
 	err := JobService.SetDstUrl("id", "new Url")
 	assert.NotNil(t, err)
@@ -551,7 +551,7 @@ func TestSetDstUrlIdError(t *testing.T) {
 }
 
 func TestSetDstUrlNoError(t *testing.T) {
-	setDstUrlFunction = func(jobId string, dstUrl string) rest_errors.RestErr {
+	setDstUrlFunction = func(jobId string, dstUrl string) api_error.ApiErr {
 		return nil
 	}
 	err := JobService.SetDstUrl("id", "new Url")
@@ -559,8 +559,8 @@ func TestSetDstUrlNoError(t *testing.T) {
 }
 
 func TestSetErrMsgIdError(t *testing.T) {
-	setErrMsgFunction = func(jobId string, errMsg string) rest_errors.RestErr {
-		return rest_errors.NewBadRequestError("could not set error message")
+	setErrMsgFunction = func(jobId string, errMsg string) api_error.ApiErr {
+		return api_error.NewBadRequestError("could not set error message")
 	}
 	err := JobService.SetErrMsg("id", "new error message")
 	assert.NotNil(t, err)
@@ -569,7 +569,7 @@ func TestSetErrMsgIdError(t *testing.T) {
 }
 
 func TestSetErrMsgNoError(t *testing.T) {
-	setErrMsgFunction = func(jobId string, errMsg string) rest_errors.RestErr {
+	setErrMsgFunction = func(jobId string, errMsg string) api_error.ApiErr {
 		return nil
 	}
 	err := JobService.SetErrMsg("id", "new error message")
@@ -577,8 +577,8 @@ func TestSetErrMsgNoError(t *testing.T) {
 }
 
 func TestGetAllNoJobsError(t *testing.T) {
-	getAllFunction = func() (*domain.Jobs, rest_errors.RestErr) {
-		return nil, rest_errors.NewNotFoundError("no jobs in list")
+	getAllFunction = func() (*domain.Jobs, api_error.ApiErr) {
+		return nil, api_error.NewNotFoundError("no jobs in list")
 	}
 	jobs, err := JobService.GetAll()
 	assert.Nil(t, jobs)
@@ -588,7 +588,7 @@ func TestGetAllNoJobsError(t *testing.T) {
 }
 
 func TestGetAllNoError(t *testing.T) {
-	getAllFunction = func() (*domain.Jobs, rest_errors.RestErr) {
+	getAllFunction = func() (*domain.Jobs, api_error.ApiErr) {
 		newJob := domain.Job{
 			Id:         "1zXgBZNnBG1msmF1ARQK9ZphbbO",
 			Name:       "Job 1",

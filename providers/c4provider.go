@@ -11,8 +11,8 @@ import (
 	c4gen "github.com/Avalanche-io/c4/id"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/johannes-kuhfuss/c4svc/config"
+	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
 	"github.com/johannes-kuhfuss/c4svc/utils/logger"
-	rest_errors "github.com/johannes-kuhfuss/c4svc/utils/rest_errors_utils"
 )
 
 var (
@@ -22,19 +22,19 @@ var (
 type c4ProviderService struct{}
 
 type c4ProviderInterface interface {
-	ProcessFile(string, bool) (*string, *string, rest_errors.RestErr)
+	ProcessFile(string, bool) (*string, *string, api_error.ApiErr)
 }
 
-func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, *string, rest_errors.RestErr) {
+func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, *string, api_error.ApiErr) {
 	var dstUrl string
 	if strings.TrimSpace(config.StorageAccountName) == "" || strings.TrimSpace(config.StorageAccountKey) == "" {
 		logger.Error("No storage account access credentials", nil)
-		return nil, nil, rest_errors.NewInternalServerError("No storage account access credentials", nil)
+		return nil, nil, api_error.NewInternalServerError("No storage account access credentials", nil)
 	}
 	url, err := url.Parse(srcUrl)
 	if err != nil || srcUrl == "" {
 		logger.Error("Cannot parse source URL", nil)
-		return nil, nil, rest_errors.NewBadRequestError("Cannot parse source URL")
+		return nil, nil, api_error.NewBadRequestError("Cannot parse source URL")
 	}
 	blobUrl := url.Scheme + "://" + url.Host + "/"
 	logger.Debug(fmt.Sprintf("blobUrl: %v", blobUrl))
@@ -44,17 +44,17 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 	fileExt := filepath.Ext(url.Path)
 	if url.Scheme == "" || url.Host == "" || containerName == "." {
 		logger.Error("Cannot parse source URL", nil)
-		return nil, nil, rest_errors.NewBadRequestError("Cannot parse source URL")
+		return nil, nil, api_error.NewBadRequestError("Cannot parse source URL")
 	}
 	cred, err := azblob.NewSharedKeyCredential(config.StorageAccountName, config.StorageAccountKey)
 	if err != nil {
 		logger.Error("Cannot access storage account - wrong credentials", err)
-		return nil, nil, rest_errors.NewInternalServerError("Cannot access storage account - wrong credentials", err)
+		return nil, nil, api_error.NewInternalServerError("Cannot access storage account - wrong credentials", err)
 	}
 	serviceClient, err := azblob.NewServiceClient(blobUrl, cred, nil)
 	if err != nil {
 		logger.Error("Cannot access storage account - could not create service client", err)
-		return nil, nil, rest_errors.NewInternalServerError("Cannot access storage account - could not create service client", err)
+		return nil, nil, api_error.NewInternalServerError("Cannot access storage account - could not create service client", err)
 	}
 	ctx := context.Background()
 	container := serviceClient.NewContainerClient(containerName)
@@ -62,7 +62,7 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 	get, err := blockBlob.Download(ctx, nil)
 	if err != nil {
 		logger.Error("Cannot access file on storage account", err)
-		return nil, nil, rest_errors.NewBadRequestError("Cannot access file on storage account")
+		return nil, nil, api_error.NewBadRequestError("Cannot access file on storage account")
 	}
 	reader := get.Body(azblob.RetryReaderOptions{})
 	id := c4gen.Identify(reader)
@@ -71,7 +71,7 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 		lease, err := blockBlob.NewBlobLeaseClient(nil)
 		if err != nil {
 			logger.Error("Cannot get lease on file", err)
-			return nil, nil, rest_errors.NewInternalServerError("Cannot get lease on file", err)
+			return nil, nil, api_error.NewInternalServerError("Cannot get lease on file", err)
 		}
 		lease.AcquireLease(ctx, &azblob.AcquireLeaseBlobOptions{})
 		defer lease.BreakLease(ctx, nil)
@@ -80,12 +80,12 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 		_, err = newBlockBlob.StartCopyFromURL(ctx, blockBlob.URL(), nil)
 		if err != nil {
 			logger.Error("Renaming of file failed", err)
-			return nil, nil, rest_errors.NewInternalServerError("Renaming of file failed", err)
+			return nil, nil, api_error.NewInternalServerError("Renaming of file failed", err)
 		}
 		_, err = blockBlob.Delete(ctx, nil)
 		if err != nil {
 			logger.Error("Deleting of source file failed", err)
-			return nil, nil, rest_errors.NewInternalServerError("Deleting of source file failed", err)
+			return nil, nil, api_error.NewInternalServerError("Deleting of source file failed", err)
 		}
 		dstUrl = blobUrl + containerName + "/" + c4string + fileExt
 	}

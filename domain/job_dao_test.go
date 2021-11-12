@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/utils/date_utils"
+	"github.com/johannes-kuhfuss/c4svc/utils/date"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -255,7 +255,7 @@ func TestCleanJobsNoModDate(t *testing.T) {
 }
 
 func TestCleanJobsNoError(t *testing.T) {
-	job4.ModifiedAt = date_utils.GetNowUtc().Add(-config.DeleteFinishedAge).Format(date_utils.ApiDateLayout)
+	job4.ModifiedAt = date.GetNowUtc().Add(-config.DeleteFinishedAge).Format(date.ApiDateLayout)
 	addJob(job4)
 	numJobs, err := JobDao.CleanJobs(config.DeleteFinishedAge, config.DeleteFailedAge)
 	assert.Nil(t, err)

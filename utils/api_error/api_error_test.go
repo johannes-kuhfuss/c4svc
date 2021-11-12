@@ -1,4 +1,4 @@
-package rest_errors
+package api_error
 
 import (
 	"errors"
