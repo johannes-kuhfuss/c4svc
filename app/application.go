@@ -15,7 +15,9 @@ func init() {
 	logger.Debug("Initializing router")
 	gin.SetMode(config.GinMode())
 	gin.DefaultWriter = logger.GetLogger()
-	router = gin.Default()
+	router = gin.New()
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 	logger.Debug("Done initializing router")
 }
 
