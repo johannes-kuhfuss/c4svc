@@ -28,22 +28,21 @@ type logger struct {
 }
 
 func init() {
-	logConfig := zap.Config{
-		OutputPaths: []string{getOutput()},
-		Level:       zap.NewAtomicLevelAt(getLevel()),
-		Encoding:    "json",
-		EncoderConfig: zapcore.EncoderConfig{
-			LevelKey:     "level",
-			TimeKey:      "time",
-			MessageKey:   "msg",
-			EncodeTime:   zapcore.ISO8601TimeEncoder,
-			EncodeLevel:  zapcore.LowercaseLevelEncoder,
-			EncodeCaller: zapcore.ShortCallerEncoder,
-		},
-	}
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.LevelKey = "level"
+	encoderConfig.TimeKey = "time"
+	encoderConfig.MessageKey = "msg"
+	encoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
+	encoderConfig.StacktraceKey = ""
+
+	logConfig := zap.NewProductionConfig()
+	logConfig.OutputPaths = []string{getOutput()}
+	logConfig.Level = zap.NewAtomicLevelAt(getLevel())
+	logConfig.Encoding = "json"
+	logConfig.EncoderConfig = encoderConfig
 
 	var err error
-	if log.log, err = logConfig.Build(); err != nil {
+	if log.log, err = logConfig.Build(zap.AddCaller(), zap.AddCallerSkip(1)); err != nil {
 		panic(err)
 	}
 }
