@@ -27,6 +27,11 @@ type logger struct {
 	log *zap.Logger
 }
 
+type Field struct {
+	Key   string
+	Value interface{}
+}
+
 func init() {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.LevelKey = "level"
@@ -88,18 +93,30 @@ func (l logger) Print(v ...interface{}) {
 	Info(fmt.Sprintf("%v", v))
 }
 
-func Debug(msg string, tags ...zap.Field) {
-	log.log.Debug(msg, tags...)
+func fieldsToZapField(tags []Field) []zapcore.Field {
+	zapTags := make([]zap.Field, 0)
+	for _, tag := range tags {
+		zapTag := zap.Any(tag.Key, tag.Value)
+		zapTags = append(zapTags, zapTag)
+	}
+	return zapTags
+}
+
+func Debug(msg string, tags ...Field) {
+	zapTags := fieldsToZapField(tags)
+	log.log.Debug(msg, zapTags...)
 	log.log.Sync()
 }
 
-func Info(msg string, tags ...zap.Field) {
-	log.log.Info(msg, tags...)
+func Info(msg string, tags ...Field) {
+	zapTags := fieldsToZapField(tags)
+	log.log.Info(msg, zapTags...)
 	log.log.Sync()
 }
 
-func Error(msg string, err error, tags ...zap.Field) {
-	tags = append(tags, zap.NamedError("error", err))
-	log.log.Error(msg, tags...)
+func Error(msg string, err error, tags ...Field) {
+	zapTags := fieldsToZapField(tags)
+	zapTags = append(zapTags, zap.NamedError("error", err))
+	log.log.Error(msg, zapTags...)
 	log.log.Sync()
 }
