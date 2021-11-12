@@ -1,9 +1,6 @@
 package app
 
 import (
-	"time"
-
-	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4svc/config"
 	"github.com/johannes-kuhfuss/c4svc/services"
@@ -17,11 +14,8 @@ var (
 func init() {
 	logger.Debug("Initializing router")
 	gin.SetMode(config.GinMode())
-	router = gin.New()
-	log := logger.GetLog()
-	router.Use(ginzap.Ginzap(log, time.RFC3339, true))
-	router.Use(ginzap.RecoveryWithZap(log, true))
-	router.Use()
+	gin.DefaultWriter = logger.GetLogger()
+	router = gin.Default()
 	logger.Debug("Done initializing router")
 }
 

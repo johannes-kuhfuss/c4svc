@@ -22,8 +22,9 @@ var (
 )
 
 type loggerInterface interface {
-	Print(v ...interface{})
-	Printf(format string, v ...interface{})
+	Print(...interface{})
+	Printf(string, ...interface{})
+	Write([]byte) (int, error)
 }
 
 type logger struct {
@@ -116,6 +117,20 @@ func (l logger) Print(v ...interface{}) {
 	Info(fmt.Sprintf("%v", v))
 }
 
+func (l logger) Write(data []byte) (n int, err error) {
+	//fmt.Printf("data: %v", string(data))
+	logMessage := string(data)
+	if strings.Contains(strings.ToLower(logMessage), "warn") {
+		Warn(logMessage)
+	} else if strings.Contains(logMessage, "debug") {
+		Debug(logMessage)
+	} else {
+		Info(logMessage)
+	}
+
+	return len(data), nil
+}
+
 func fieldsToZapField(tags []Field) []zapcore.Field {
 	zapTags := make([]zap.Field, 0)
 	for _, tag := range tags {
@@ -134,6 +149,12 @@ func Debug(msg string, tags ...Field) {
 func Info(msg string, tags ...Field) {
 	zapTags := fieldsToZapField(tags)
 	log.log.Info(msg, zapTags...)
+	log.log.Sync()
+}
+
+func Warn(msg string, tags ...Field) {
+	zapTags := fieldsToZapField(tags)
+	log.log.Warn(msg, zapTags...)
 	log.log.Sync()
 }
 

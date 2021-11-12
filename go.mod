@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/Avalanche-io/c4 v0.7.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v0.1.0
-	github.com/gin-contrib/zap v0.0.1
 	github.com/gin-gonic/gin v1.7.4
 	github.com/joho/godotenv v1.4.0
 	github.com/segmentio/ksuid v1.0.4
