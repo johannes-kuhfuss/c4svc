@@ -19,6 +19,7 @@ var (
 	CleanupWaitTime    = (time.Hour * 1)
 	StorageAccountName = ""
 	StorageAccountKey  = ""
+	ListenAddr         = ""
 )
 
 func init() {
@@ -37,6 +38,10 @@ func init() {
 	StorageAccountName = os.Getenv("STORAGE_ACCOUNT_NAME")
 	StorageAccountKey = os.Getenv("STORAGE_ACCOUNT_KEY")
 	logger.Debug(fmt.Sprintf("Storage Account Name: %v\n", StorageAccountName))
+	ListenAddr = os.Getenv("LISTEN_ADDR")
+	if len(ListenAddr) == 0 {
+		ListenAddr = ":8080"
+	}
 	logger.Info("Done initalizing configuration")
 }
 

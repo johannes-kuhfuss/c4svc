@@ -30,7 +30,7 @@ func StartApp() {
 	logger.Info("Starting job cleanup")
 	go services.JobCleanupService.Cleanup()
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(config.ListenAddr); err != nil {
 		logger.Error("Error while starting router", err)
 		panic(err)
 	}
