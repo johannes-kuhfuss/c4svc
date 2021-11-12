@@ -120,9 +120,11 @@ func (l logger) Print(v ...interface{}) {
 func (l logger) Write(data []byte) (n int, err error) {
 	//fmt.Printf("data: %v", string(data))
 	logMessage := string(data)
-	if strings.Contains(strings.ToLower(logMessage), "warn") {
+	if strings.Contains(strings.ToLower(logMessage), "error") {
+		Error(logMessage, nil)
+	} else if strings.Contains(strings.ToLower(logMessage), "warn") {
 		Warn(logMessage)
-	} else if strings.Contains(logMessage, "debug") {
+	} else if strings.Contains(strings.ToLower(logMessage), "debug") {
 		Debug(logMessage)
 	} else {
 		Info(logMessage)

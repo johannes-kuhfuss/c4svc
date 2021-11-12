@@ -180,3 +180,114 @@ func TestPrintfWithFormat(t *testing.T) {
 	assert.NotEmpty(t, m["time"])
 	assert.EqualValues(t, m["msg"], "my formatted message")
 }
+
+func TestWarn(t *testing.T) {
+	initLogger(true)
+	Warn("my warn message")
+	output := sink.String()
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(output), &m)
+	if err != nil {
+		panic(err)
+	}
+	assert.EqualValues(t, m["level"], "warn")
+	assert.Contains(t, m["caller"], "logger")
+	assert.NotEmpty(t, m["time"])
+	assert.EqualValues(t, m["msg"], "my warn message")
+}
+
+func TestWarnWithField(t *testing.T) {
+	initLogger(true)
+	Warn("my warn message", Field{
+		Key:   "id",
+		Value: "123",
+	})
+	output := sink.String()
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(output), &m)
+	if err != nil {
+		panic(err)
+	}
+	assert.EqualValues(t, m["level"], "warn")
+	assert.Contains(t, m["caller"], "logger")
+	assert.NotEmpty(t, m["time"])
+	assert.EqualValues(t, m["msg"], "my warn message")
+	assert.EqualValues(t, m["id"], "123")
+}
+
+func TestWriteInfo(t *testing.T) {
+	initLogger(true)
+	logMessage := "the is an info message"
+	written, writeErr := log.Write([]byte(logMessage))
+	output := sink.String()
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(output), &m)
+	if err != nil {
+		panic(err)
+	}
+	assert.NotNil(t, written)
+	assert.Nil(t, writeErr)
+	assert.EqualValues(t, len(logMessage), written)
+	assert.EqualValues(t, m["level"], "info")
+	assert.Contains(t, m["caller"], "logger")
+	assert.NotEmpty(t, m["time"])
+	assert.EqualValues(t, m["msg"], "the is an info message")
+}
+
+func TestWriteWarn(t *testing.T) {
+	initLogger(true)
+	logMessage := "the is a warning message"
+	written, writeErr := log.Write([]byte(logMessage))
+	output := sink.String()
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(output), &m)
+	if err != nil {
+		panic(err)
+	}
+	assert.NotNil(t, written)
+	assert.Nil(t, writeErr)
+	assert.EqualValues(t, len(logMessage), written)
+	assert.EqualValues(t, m["level"], "warn")
+	assert.Contains(t, m["caller"], "logger")
+	assert.NotEmpty(t, m["time"])
+	assert.EqualValues(t, m["msg"], "the is a warning message")
+}
+
+func TestWriteError(t *testing.T) {
+	initLogger(true)
+	logMessage := "the is an error message"
+	written, writeErr := log.Write([]byte(logMessage))
+	output := sink.String()
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(output), &m)
+	if err != nil {
+		panic(err)
+	}
+	assert.NotNil(t, written)
+	assert.Nil(t, writeErr)
+	assert.EqualValues(t, len(logMessage), written)
+	assert.EqualValues(t, m["level"], "error")
+	assert.Contains(t, m["caller"], "logger")
+	assert.NotEmpty(t, m["time"])
+	assert.EqualValues(t, m["msg"], "the is an error message")
+}
+
+func TestWriteDebug(t *testing.T) {
+	os.Setenv("LOG_LEVEL", "debug")
+	initLogger(true)
+	logMessage := "the is a debug message"
+	written, writeErr := log.Write([]byte(logMessage))
+	output := sink.String()
+	m := make(map[string]interface{})
+	err := json.Unmarshal([]byte(output), &m)
+	if err != nil {
+		panic(err)
+	}
+	assert.NotNil(t, written)
+	assert.Nil(t, writeErr)
+	assert.EqualValues(t, len(logMessage), written)
+	assert.EqualValues(t, m["level"], "debug")
+	assert.Contains(t, m["caller"], "logger")
+	assert.NotEmpty(t, m["time"])
+	assert.EqualValues(t, m["msg"], "the is a debug message")
+}
