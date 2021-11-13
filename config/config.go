@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -24,12 +25,6 @@ var (
 
 func init() {
 	logger.Info("Initalizing configuration")
-	/*
-		err := godotenv.Load(".env")
-		if err != nil {
-			logger.Error("Could not open env file", err)
-		}
-	*/
 	osGinMode := os.Getenv("GIN_MODE")
 	if osGinMode == gin.ReleaseMode || osGinMode == gin.DebugMode || osGinMode == gin.TestMode {
 		ginMode = osGinMode
@@ -37,6 +32,12 @@ func init() {
 	logger.Debug(fmt.Sprintf("Gin-Gonic Mode: %v\n", ginMode))
 	StorageAccountName = os.Getenv("STORAGE_ACCOUNT_NAME")
 	StorageAccountKey = os.Getenv("STORAGE_ACCOUNT_KEY")
+	if StorageAccountName == "" || StorageAccountKey == "" {
+		err := godotenv.Load(".env")
+		if err != nil {
+			logger.Error("Could not open env file", err)
+		}
+	}
 	logger.Debug(fmt.Sprintf("Storage Account Name: %v\n", StorageAccountName))
 	ListenAddr = os.Getenv("LISTEN_ADDR")
 	if len(ListenAddr) == 0 {
