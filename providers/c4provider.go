@@ -51,7 +51,10 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 		logger.Error("Cannot access storage account - wrong credentials", err)
 		return nil, nil, api_error.NewInternalServerError("Cannot access storage account - wrong credentials", err)
 	}
-	serviceClient, err := azblob.NewServiceClient(blobUrl, cred, nil)
+
+	//serviceClient, err := azblob.NewServiceClient(blobUrl, cred, nil)
+	serviceClient, err := azblob.NewServiceClientWithSharedKey(blobUrl, cred, nil)
+
 	if err != nil {
 		logger.Error("Cannot access storage account - could not create service client", err)
 		return nil, nil, api_error.NewInternalServerError("Cannot access storage account - could not create service client", err)
