@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"os"
@@ -12,6 +13,25 @@ import (
 func TestConstants(t *testing.T) {
 	assert.EqualValues(t, envLogLevel, "LOG_LEVEL")
 	assert.EqualValues(t, envLogOutput, "LOG_OUTPUT")
+}
+
+func TestMemSinkClose(t *testing.T) {
+	sink = &MemorySink{new(bytes.Buffer)}
+	result := sink.Close()
+	assert.Nil(t, result)
+}
+
+func TestMemSinkSync(t *testing.T) {
+	sink = &MemorySink{new(bytes.Buffer)}
+	result := sink.Sync()
+	assert.Nil(t, result)
+}
+
+func TestGetOutput(t *testing.T) {
+	os.Setenv("LOG_OUTPUT", "logoutputtest")
+	result := getOutput()
+	assert.NotNil(t, result)
+	assert.EqualValues(t, "logoutputtest", result)
 }
 
 func TestGetLogger(t *testing.T) {
