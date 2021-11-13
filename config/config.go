@@ -37,6 +37,8 @@ func init() {
 		if err != nil {
 			logger.Error("Could not open env file", err)
 		}
+		StorageAccountName = os.Getenv("STORAGE_ACCOUNT_NAME")
+		StorageAccountKey = os.Getenv("STORAGE_ACCOUNT_KEY")
 	}
 	logger.Debug(fmt.Sprintf("Storage Account Name: %v\n", StorageAccountName))
 	ListenAddr = os.Getenv("LISTEN_ADDR")
