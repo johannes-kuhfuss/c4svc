@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
+	"github.com/johannes-kuhfuss/services_utils/api_error"
 )
 
 type JobType string

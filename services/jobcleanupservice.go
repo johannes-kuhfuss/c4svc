@@ -6,7 +6,7 @@ import (
 
 	"github.com/johannes-kuhfuss/c4svc/config"
 	"github.com/johannes-kuhfuss/c4svc/domain"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
 var (

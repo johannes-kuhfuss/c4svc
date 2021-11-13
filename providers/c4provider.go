@@ -11,8 +11,8 @@ import (
 	c4gen "github.com/Avalanche-io/c4/id"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/services_utils/api_error"
+	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
 var (
@@ -94,5 +94,4 @@ func (c4p *c4ProviderService) ProcessFile(srcUrl string, rename bool) (*string, 
 	} else {
 		return &c4string, nil, nil
 	}
-
 }

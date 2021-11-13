@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/johannes-kuhfuss/c4svc/config"
-	"github.com/johannes-kuhfuss/c4svc/utils/date"
+	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/c4svc/domain"
 	"github.com/johannes-kuhfuss/c4svc/services"
-	"github.com/johannes-kuhfuss/c4svc/utils/api_error"
-	"github.com/johannes-kuhfuss/c4svc/utils/logger"
+	"github.com/johannes-kuhfuss/services_utils/api_error"
+	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/segmentio/ksuid"
 )
 
