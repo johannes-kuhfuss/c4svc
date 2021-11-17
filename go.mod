@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/Avalanche-io/c4 v0.7.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v0.2.0
-	github.com/johannes-kuhfuss/services_utils v1.0.2
+	github.com/johannes-kuhfuss/services_utils v1.0.3
 	github.com/joho/godotenv v1.4.0
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/testify v1.7.0
